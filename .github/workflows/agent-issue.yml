@@ -51,7 +51,9 @@ jobs:
       - uses: anthropics/claude-code-action@v1
         with:
           use_bedrock: 'true'
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # The PAT (not GITHUB_TOKEN): the pull request has to be opened against the
+          # upstream repository, and the fork's own GITHUB_TOKEN can only write to the fork.
+          github_token: ${{ secrets.GH_TOKEN }}
           label_trigger: agent-ready
           display_report: 'true'
           claude_args: |
@@ -81,13 +83,16 @@ jobs:
 
             1. Implement the task and its test. Touch only the files the task needs.
             2. Run the narrow gate (`cargo fmt --all`, `cargo test -p <crate>`) and make it pass.
-            3. Commit with a message that references the issue, push the branch, and open a
-               **draft** pull request against `main` (this repository's convention: a claim is
-               a draft PR).
+            3. Commit with a message that references the issue, push the branch to the fork
+               `vdirienzo/solidcraft`, and open a **draft** pull request against the upstream
+               repository `tangency-labs/solidcraft` (base `main`, head
+               `vdirienzo:<your branch>`). This repository's convention: a claim is a draft PR.
 
             ## What you must not do
 
-            - Do not merge, close, or rebase anything. Do not push to `tangency-labs/solidcraft`.
+            - Do not merge, close, or rebase anything. Do not force-push.
+            - Do not push to `tangency-labs/solidcraft`; you have no write access there, and
+              only the fork is yours.
             - Do not change the CI workflows, the xtask, or the repository rules.
             - Do not run the full `cargo xtask ci`; it takes about 90 minutes on a saturated
               machine and the pull request's own CI does it on GitHub's runners.
