@@ -43,10 +43,22 @@ jobs:
       AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
       ANTHROPIC_DEFAULT_SONNET_MODEL: us.anthropic.claude-sonnet-5
       ANTHROPIC_DEFAULT_HAIKU_MODEL: us.anthropic.claude-haiku-4-5-20251001-v1:0
+      # The agent pushes to the fork and opens the pull request against the upstream
+      # with `gh`, so the runner needs the token in its environment.
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Authenticate gh and git for the fork
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          gh auth setup-git
+          git config --global user.name "vdirienzo"
+          git config --global user.email "vdirienzo@gmail.com"
 
       - uses: anthropics/claude-code-action@v1
         with:
@@ -59,7 +71,7 @@ jobs:
           claude_args: |
             --model us.anthropic.claude-sonnet-5
             --max-turns 40
-            --allowedTools Edit,Read,Write,Glob,Grep,Bash(git:*),Bash(cargo:*),Bash(rustc:*),Bash(ls:*),Bash(cat:*),Bash(rg:*),Bash(head:*),Bash(tail:*),Bash(wc:*),Bash(mkdir:*),Bash(cp:*),Bash(rm:*),Bash(find:*),Bash(test:*),Bash(echo:*),Bash(cat:*),Bash(mkdir:*)
+            --allowedTools Edit,Read,Write,Glob,Grep,Bash(git:*),Bash(cargo:*),Bash(rustc:*),Bash(ls:*),Bash(cat:*),Bash(rg:*),Bash(head:*),Bash(tail:*),Bash(wc:*),Bash(mkdir:*),Bash(cp:*),Bash(rm:*),Bash(find:*),Bash(test:*),Bash(echo:*),Bash(gh pr create:*),Bash(gh pr view:*),Bash(gh pr list:*),Bash(gh api:*)
           prompt: |
             You are working in the SolidCraft repository. The task is issue #${{ github.event.issue.number || inputs.issue_number }}.
 
