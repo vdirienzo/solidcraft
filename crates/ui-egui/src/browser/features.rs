@@ -996,6 +996,59 @@ mod tests {
         assert_eq!(marks(), ["status:warning:Warned"], "a suppressed feature isn't built and has no mark");
     }
 
+    /// #10079: renaming a second extrusion from the Browser opens the main sketch instead of
+    /// renaming it: the row's "Edit Profile Sketch" button swallows the click on the name, because
+    /// the name is drawn where the button is hit-tested. The first extrusion renames fine; the
+    /// second one, whose name is shorter than the row's action space, opens the sketch.
+    #[test]
+    fn renaming_a_second_extrusion_in_the_browser_does_not_open_its_sketch() {
+        let mut h = Harness::new();
+        // A sketch with three separate rectangles, kept visible.
+        let sketch = h.app.run("sketch.create", json!({"plane":"XY","name":"Sketch1"})).unwrap()["sketch"].as_u64().unwrap();
+        for x in [0.0, 20.0, 40.0] {
+            h.app.run("sketch.rectangle.two_point", json!({"p0":[x,0],"p1":[x+10.0,10.0]})).unwrap();
+        }
+        h.app.run("sketch.finish", json!({})).unwrap();
+        h.app.run("browser.visibility", json!({"items":["Sketch1"],"visible":true})).unwrap();
+        // The first extrusion, renamed from the Browser: the click on its name must not open the
+        // sketch, and the rename must land.
+        let first = h.app.run("solid.extrude", json!({"sketch":"Sketch1","profiles":[0],"distance":5})).unwrap()["feature"].as_u64().unwrap();
+        h.app.tree.expanded.insert("c0/features".into());
+        h.settle();
+        let label = crate::scenario::rect_of(&format!("row_label:{}", h.app.session.doc.feature(first).unwrap().name)).unwrap();
+        h.step(&json!({"click":[label.center().x, label.center().y]})).unwrap();
+        h.settle();
+        assert_eq!(h.app.session.active_sketch, None, "clicking the first extrusion's name does not open its sketch");
+        h.step(&json!({"key":"F2"})).unwrap();
+        h.settle();
+        h.step(&json!({"text":"1"})).unwrap();
+        h.step(&json!({"key":"Enter"})).unwrap();
+        h.settle();
+        assert_eq!(h.app.session.doc.feature(first).unwrap().name, "1", "the first extrusion renames from the Browser");
+        // The second extrusion: renaming it must not open the main sketch either.
+        let second = h.app.run("solid.extrude", json!({"sketch":"Sketch1","profiles":[1],"distance":5})).unwrap()["feature"].as_u64().unwrap();
+        h.settle();
+        // The name the first extrusion gave up is the one the second takes.
+        assert_eq!(h.app.session.doc.feature(second).unwrap().name, "Extrude1");
+        let label = crate::scenario::rect_of("row_label:Extrude1").unwrap();
+        let action = crate::scenario::rect_of("action:Extrude1").unwrap();
+        let row = crate::scenario::rect_of("row:Extrude1").unwrap();
+        println!("DIAG label={label:?} action={action:?} row={row:?} overlap={:?}", label.intersect(action));
+        println!("DIAG first label={:?}", crate::scenario::rect_of("row_label:1"));
+        println!("DIAG first action={:?}", crate::scenario::rect_of("action:1"));
+        h.step(&json!({"click":[label.center().x, label.center().y]})).unwrap();
+        h.settle();
+        assert_eq!(h.app.session.active_sketch, None, "clicking the second extrusion's name does not open its sketch either");
+        h.step(&json!({"key":"F2"})).unwrap();
+        h.settle();
+        h.step(&json!({"text":"Second"})).unwrap();
+        h.step(&json!({"key":"Enter"})).unwrap();
+        h.settle();
+        assert_eq!(h.app.session.doc.feature(second).unwrap().name, "Second", "the second extrusion renames from the Browser");
+        assert_eq!(h.app.session.active_sketch, None, "renaming leaves no sketch open");
+        assert_ne!(sketch, second, "the two extrusions are different features");
+    }
+
     /// #9565: with the History in the browser, dragging a feature row moves the feature as the
     /// History at the left does, and the marker still drags on its own.
     #[test]
