@@ -3545,3 +3545,48 @@ fn a_tangent_arc_can_end_on_an_existing_point() {
     assert!(s.execute("sketch.arc.tangent", &json!({"start": format!("{down}.end"), "curve": down, "end": format!("{down}.end")})).is_err());
     assert_eq!(s.doc.to_json(), before);
 }
+
+/// #10134: a dimension on a drawn 3D arc (a wire, id `w1`) failed with "unknown sketch entity",
+/// the same refused id as Move/Copy. A wire is not a solver curve, so the dimension cannot be
+/// built, but the command has to say what it cannot do rather than claim the id is unknown.
+#[test]
+fn dimension_of_a_drawn_3d_arc_refuses_with_a_clear_message() {
+    let mut s = new_sketch();
+    run(&mut s, "sketch.options", json!({"sketch_3d": true}));
+    let arc = run(&mut s, "sketch.arc3d", json!({"start": [10, 0, 3], "through": [0, 10, 3], "end": [-10, 0, 3]}))["curves"][0]
+        .as_str()
+        .unwrap()
+        .to_string();
+    let before = s.doc.to_json();
+    let error = s.execute("sketch.dimension", &json!({"entities": [arc], "type": "radius"})).unwrap_err().to_string();
+    assert!(error.contains("not supported yet"), "{error}");
+    assert!(!error.contains("unknown sketch entity"), "{error}");
+    assert_eq!(s.doc.to_json(), before);
+}
+
+/// #10134: Move/Copy on a drawn 3D curve (a wire, id `w1`) failed with "unknown sketch entity":
+/// the id namespaces of planar curves, points and 3D wires were never told apart, so a wire id
+/// reached the planar resolver and was refused. Moving a drawn 3D arc has to move its fit
+/// points in the sketch plane and keep the arc exact.
+#[test]
+fn move_of_a_drawn_3d_arc_moves_it_instead_of_refusing_the_id() {
+    use solidcraft_geom::Vec3;
+    let mut s = new_sketch();
+    run(&mut s, "sketch.options", json!({"sketch_3d": true}));
+    let id = s.active_sketch.unwrap();
+    let arc = ids(&run(&mut s, "sketch.arc3d", json!({"start": [10, 0, 3], "through": [0, 10, 3], "end": [-10, 0, 3]}))["curves"])[0].clone();
+    assert!(arc.starts_with('w'), "a drawn 3D curve is a wire: {arc}");
+    let before = s.doc.sketch(id).unwrap().wires[0].clone();
+    run(&mut s, "sketch.move", json!({"entities": [arc], "translate": [1.6, 0]}));
+    let sk = s.doc.sketch(id).unwrap();
+    assert_eq!(sk.wires.len(), 1, "a move does not copy");
+    let wire = &sk.wires[0];
+    assert_eq!(wire.id, arc);
+    for (p, q) in wire.fit.iter().zip(&before.fit) {
+        let want = *q + Vec3::new(1.6, 0.0, 0.0);
+        assert!(p.dist(want) < 1e-9, "{p:?} != {want:?}");
+    }
+    let a = wire.arc.expect("an exact arc stays exact");
+    assert!(a.center.dist(Vec3::new(1.6, 0.0, 3.0)) < 1e-9, "{:?}", a.center);
+    assert!(close(a.radius, 10.0));
+}
