@@ -351,6 +351,28 @@ pub fn tr_diagnostic(text: &str) -> String {
 
 #[cfg(test)]
 mod tests {
+    /// A first start has no saved language: the interface follows the system's (#10138).
+    ///
+    /// The system's locale is matched against the registered catalogs: the exact tag first
+    /// (`zh-TW`, `pt-BR`, `en-GB`), then the tag's base language (`zh-CN` → `zh`,
+    /// `de-AT` → `de`), then English (`xx-YY` → `en`). A saved language always wins, so
+    /// existing users keep the one they chose.
+    #[test]
+    fn the_language_preference_defaults_to_following_the_system() {
+        assert_eq!(
+            crate::prefs::Prefs::default().language,
+            "system",
+            "a first start has no saved language, so the preference follows the system"
+        );
+    }
+
+    /// A saved language preference wins over the system's (#10138).
+    #[test]
+    fn a_saved_language_preference_wins_over_the_system() {
+        let saved = crate::prefs::lenient(&serde_json::json!({"language": "ja"}));
+        assert_eq!(saved.language, "ja", "the saved language is kept");
+    }
+
     #[test]
     fn theme_options_resolved_labels_are_verbatim_and_restore_catalog_adapters() {
         let _language = super::scope("de");
