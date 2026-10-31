@@ -143,12 +143,34 @@ pub fn match_system_tags(tags: &[String]) -> &'static str {
         if let Some(catalog) = LOCALES.iter().find(|catalog| catalog.id.eq_ignore_ascii_case(&tag)) {
             return catalog.id;
         }
+        if let Some(catalog) = match_script_bearing_tag(&tag) {
+            return catalog.id;
+        }
         let base = tag.split('-').next().unwrap_or(&tag);
         if let Some(catalog) = LOCALES.iter().find(|catalog| catalog.id.eq_ignore_ascii_case(base)) {
             return catalog.id;
         }
     }
     ENGLISH.id
+}
+
+/// The catalog a script-bearing tag names by its region: macOS reports `zh-Hant-TW` for
+/// Traditional Chinese, so the tag's language and region (`zh-TW`) are what the catalog
+/// list is keyed by. A tag with no region of its own (`sr-Latn-RS`) keeps its base language.
+fn match_script_bearing_tag(tag: &str) -> Option<&'static Catalog> {
+    let mut parts = tag.split('-');
+    let language = parts.next()?;
+    let mut region = None;
+    for part in parts {
+        // The script subtag (four letters, `Hant`) sits between the language and the region.
+        if part.len() == 4 && part.chars().all(|c| c.is_ascii_alphabetic()) {
+            continue;
+        }
+        region = Some(part);
+    }
+    let region = region?;
+    let with_region = format!("{language}-{region}");
+    LOCALES.iter().copied().find(|catalog| catalog.id.eq_ignore_ascii_case(&with_region))
 }
 
 /// The catalog id the system asks for, read once per process: the OS locale on desktop
@@ -405,6 +427,18 @@ mod tests {
         assert_eq!(super::match_system_tags(&tags(&["xx-YY"])), "en", "unknown: English");
         assert_eq!(super::match_system_tags(&tags(&[])), "en", "nothing: English");
         assert_eq!(super::match_system_tags(&tags(&["xx-YY", "de-DE"])), "de", "the first tag that matches wins");
+    }
+
+    /// A script-bearing tag names its script before its region, so the region is what the
+    /// catalog list is keyed by: macOS reports `zh-Hant-TW` for Traditional Chinese, which
+    /// must reach the Traditional catalog, not the Simplified one the base language gives.
+    #[test]
+    fn a_script_bearing_tag_matches_its_region_catalog() {
+        let tags = |list: &[&str]| list.iter().map(|s| s.to_string()).collect::<Vec<_>>();
+        assert_eq!(super::match_system_tags(&tags(&["zh-Hant-TW"])), "zh-TW", "Traditional Chinese (Taiwan)");
+        assert_eq!(super::match_system_tags(&tags(&["zh-Hans-CN"])), "zh", "Simplified Chinese (China)");
+        assert_eq!(super::match_system_tags(&tags(&["sr-Latn-RS"])), "sr", "a script without a region of its own");
+        assert_eq!(super::match_system_tags(&tags(&["az-Arab-IR"])), "en", "a language with no catalog: English");
     }
 
     /// A saved language is never overridden: only `system` resolves through the OS (#10138).
