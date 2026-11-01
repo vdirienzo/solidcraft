@@ -1,0 +1,113 @@
+PREFIX=10291-after
+source sketch=1
+dialog after OK: null
+status after OK: null
+selection after OK: {"dialog": null, "dimension_editing": false, "dimension_selected": [], "dimensions": [], "hover": null, "selection": [], "shown_dimensions": []}
+sketch.inspect:
+{
+ "constraints": [],
+ "curves": [
+  {
+   "construction": false,
+   "end": "p2",
+   "end_at": [
+    30.0,
+    10.0
+   ],
+   "fixed": true,
+   "fully_constrained": true,
+   "id": "l1",
+   "link": "j1",
+   "start": "p1",
+   "start_at": [
+    10.0,
+    10.0
+   ],
+   "type": "line"
+  }
+ ],
+ "dof": 0,
+ "failing": [],
+ "fully_constrained": true,
+ "id": 3,
+ "links": [
+  {
+   "id": "j1",
+   "kind": "project",
+   "source": {
+    "curve": "l1",
+    "sketch": 1,
+    "type": "sketch_curve"
+   }
+  }
+ ],
+ "name": "Sketch2",
+ "plane": {
+  "origin": [
+   0.0,
+   0.0,
+   10.0
+  ],
+  "x_dir": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "y_dir": [
+   0.0,
+   1.0,
+   0.0
+  ]
+ },
+ "points": [
+  {
+   "at": [
+    0.0,
+    0.0
+   ],
+   "fixed": true,
+   "fully_constrained": true,
+   "id": "origin",
+   "link": null,
+   "world": [
+    0.0,
+    0.0,
+    10.0
+   ]
+  },
+  {
+   "at": [
+    10.0,
+    10.0
+   ],
+   "fixed": true,
+   "fully_constrained": true,
+   "id": "p1",
+   "link": "j1",
+   "world": [
+    10.0,
+    10.0,
+    10.0
+   ]
+  },
+  {
+   "at": [
+    30.0,
+    10.0
+   ],
+   "fixed": true,
+   "fully_constrained": true,
+   "id": "p2",
+   "link": "j1",
+   "world": [
+    30.0,
+    10.0,
+    10.0
+   ]
+  }
+ ],
+ "profiles": [],
+ "status": "solved",
+ "visible": true,
+ "wires": []
+}
