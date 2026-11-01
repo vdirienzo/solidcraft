@@ -160,6 +160,8 @@ fn a_rectangle_put_onto_a_projected_edge_is_still_a_profile_to_click() {
 #[test]
 fn clicking_a_hole_opening_projects_its_rim_and_a_miss_is_an_error() {
     let mut h = Harness::new();
+    // These cover the direct pick workflow; the options dialog is covered in dialogs_sketch_tests.
+    h.app.preferences.project_options_dialog = false;
     h.app.run("solid.box", json!({"length": 40, "width": 30, "height": 20})).unwrap();
     h.app.run("solid.hole", json!({"position": [20, 15, 20], "diameter": 10, "depth": 20})).unwrap();
     // Above the part, so creating the sketch does not already project the face (and its hole).
@@ -191,11 +193,7 @@ fn clicking_a_hole_opening_projects_its_rim_and_a_miss_is_an_error() {
     h.step(&json!({"click": {"world": miss}})).unwrap();
     let after = h.app.run("sketch.inspect", json!({})).unwrap();
     let status = h.app.status.clone().expect("a click on empty space is an error");
-    assert!(
-        status.2 && status.0.contains("nothing"),
-        "{status:?} curves {n} -> {}",
-        after["curves"].as_array().map(|a| a.len()).unwrap_or(0)
-    );
+    assert!(status.2 && status.0.contains("nothing"), "{status:?} curves {n} -> {}", after["curves"].as_array().map(|a| a.len()).unwrap_or(0));
     assert_eq!(after["curves"].as_array().unwrap().len(), n);
     assert_eq!(h.app.tool.as_ref().map(|tool| tool.cmd), Some("sketch.project"));
 }
