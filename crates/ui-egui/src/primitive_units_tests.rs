@@ -474,6 +474,27 @@ fn choose(h: &mut Harness, row: &str, option: &str) {
     h.frames(2);
 }
 
+/// #10750: the Box dialog's Length, Width and Height are the box's X, Y and Z sizes, each one
+/// in the axis it names: the Width is the box's side, not its height.
+#[test]
+fn the_box_dialog_makes_the_width_the_side_and_not_the_height() {
+    let mut h = design("mm");
+    h.app.start("solid.box");
+    h.frames(3);
+    type_into(&mut h, "length", "10");
+    type_into(&mut h, "width", "20");
+    type_into(&mut h, "height", "30");
+    h.frames(2);
+    let p = sent(&h);
+    assert_eq!(p["length"], json!("10"), "{p}");
+    assert_eq!(p["width"], json!("20"), "{p}");
+    assert_eq!(p["height"], json!("30"), "{p}");
+    ok(&mut h);
+    // The box is 10 mm along X (its length), 20 mm along Y (its width) and 30 mm along Z (its
+    // height): each field is the size of the axis it names.
+    assert_size(&mut h.app.session, [10.0, 20.0, 30.0]);
+}
+
 #[test]
 fn the_box_dialog_places_the_box_by_its_corner_or_its_centre() {
     let mut h = design("mm");
