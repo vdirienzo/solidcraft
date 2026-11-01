@@ -1,0 +1,54 @@
+PREFIX=10291-before
+source sketch=1
+dialog after OK: "Dialog { kind: SketchProject { bodies: false, projection_link: true }, inputs: [SelInput { label: \"ui.sketch_project_geometry\", accept: 28902, multi: true, places: false, items: [SketchCurve { id: \"l1\", sketch: Some(1) }] }], active: 0, error: Some(\"select geometry or bodies that can be projected\"), editing: None, edit_source_bodies: [], profile_selection_changed: false, focus: false, value_focus: None, restore_value_focus: false, collapsed: false, reset_scroll: false, preview_enabled: true, repeat_after_apply: false, extra: {}, refused: Some(Refused { commands: Err(\"select geometry or bodies that can be projected\"), picks: [SelInput { label: \"ui.sketch_project_geometry\", accept: 28902, multi: true, places: false, items: [SketchCurve { id: \"l1\", sketch: Some(1) }] }], revision: 7 }), then_start: None, picked_edges: [], chain_applied: false, other_objects: [], shell_chain: RefCell { value: None }, press_pull: false, op_auto: OpAuto { manual: false, set: None, held: None, pending: false, ok_waiting: None } }"
+status after OK: null
+selection after OK: {"dialog": [{"items": [{"id": "l1", "sketch": 1, "type": "sketch_curve"}], "label": "ui.sketch_project_geometry"}], "dimension_editing": false, "dimension_selected": [], "dimensions": [], "hover": null, "selection": [], "shown_dimensions": []}
+sketch.inspect:
+{
+ "constraints": [],
+ "curves": [],
+ "dof": 0,
+ "failing": [],
+ "fully_constrained": true,
+ "id": 3,
+ "links": [],
+ "name": "Sketch2",
+ "plane": {
+  "origin": [
+   0.0,
+   0.0,
+   10.0
+  ],
+  "x_dir": [
+   1.0,
+   0.0,
+   0.0
+  ],
+  "y_dir": [
+   0.0,
+   1.0,
+   0.0
+  ]
+ },
+ "points": [
+  {
+   "at": [
+    0.0,
+    0.0
+   ],
+   "fixed": true,
+   "fully_constrained": true,
+   "id": "origin",
+   "link": null,
+   "world": [
+    0.0,
+    0.0,
+    10.0
+   ]
+  }
+ ],
+ "profiles": [],
+ "status": "solved",
+ "visible": true,
+ "wires": []
+}
