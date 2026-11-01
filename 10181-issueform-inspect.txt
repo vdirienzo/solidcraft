@@ -1,0 +1,11 @@
+===== handles dialog:create_issue =====
+[{"name": "dialog:create_issue", "x": 1391.40625, "y": 505.0}]
+
+===== inspect: status =====
+{"error": true, "text": "Project is not available right now: no sketch is being edited (Create Sketch or Edit Sketch first)"}
+
+===== handles (todas) =====
+["appbar:home", "titlebar:home", "tab:home", "appbar:file", "appbar:folder", "appbar:save", "titlebar:save", "appbar:undo", "titlebar:undo", "appbar:redo", "titlebar:redo", "appbar:help", "titlebar:help", "tab:design:0", "tab:close:0", "tab:new", "titlebar:report", "titlebar:assistant", "titlebar:preferences", "titlebar:version", "axis_view:y", "axis_view:-z", "axis_view:-x", "axis_view:x", "axis_view:-y", "axis_view:z", "axis_view:home", "nav:slot:orbit", "nav:slot:pan", "nav:slot:zoom", "nav:slot:separator", "nav:slot:fit", "nav:slot:look_at", "nav:slot:home", "nav:slot:separator", "nav:slot:visual_style", "nav:slot:display", "nav:view", "toast:status:close", "status:chip", "ribbon:workspace", "tab:MODEL", "tab:SOLID", "tab:PLASTIC", "tab:SURFACE", "tab:MESH", "tab:ASSEMBLE", "tab:INSERT", "tab:INSPECT", "tab:MANAGE", "tab:UTILITIES", "tab:VIEW", "tab:SHEET METAL", "tab:WELDMENTS", "ribbon:add_tab", "toolbar:sketch.create", "button:sketch.create", "panel:MODEL:SKETCH", "ribbon:section:MODEL:SKETCH", "toolbar:solid.extrude", "button:solid.extrude", "toolbar:solid.revolve", "button:solid.revolve", "toolbar:solid.hole", "button:solid.hole", "panel:MODEL:CREATE", "ribbon:section:MODE
+
+===== ui.screenshot =====
+{"height": 1000, "path": "/home/user/.local/share/solidcraft-orch/logs/evidence-10181/10181-report-a-bug-form.png", "width": 1600}

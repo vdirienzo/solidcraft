@@ -1,0 +1,50 @@
+===== documentos =====
+[{"dirty": false, "name": "Untitled"}]
+
+===== solid.box =====
+{"bodies": ["Body1"], "changed_bodies": [], "created_bodies": ["Body1"], "feature": 1, "ms": 4.877044, "name": "Box1", "removed_bodies": [], "warning": null}
+
+===== sketch.create =====
+{"attachment": "fixed", "created": {"constraints": [], "curves": [], "dimensions": [], "points": []}, "name": "Sketch1", "projected": null, "sketch": 2}
+
+===== select.set =====
+{"selected": 1}
+
+===== ui.start sketch.project =====
+{"dialog": "Dialog { kind: SketchProject { bodies: false, projection_link: true }, inputs: [SelInput { label: \"ui.sketch_project_geometry\", accept: 28902, multi: true, places: false, items: [Face { body: \"Body1\", index: 5, point: Vec3 { x: 20.0, y: 15.0, z: 20.0 } }] }], active: 0, error: None, editing: None, edit_source_bodies: [], profile_selection_changed: false, focus: true, value_focus: N
+
+===== inspect: dialog =====
+"Dialog { kind: SketchProject { bodies: false, projection_link: true }, inputs: [SelInput { label: \"ui.sketch_project_geometry\", accept: 28902, multi: true, places: false, items: [Face { body: \"Body1\", index: 5, point: Vec3 { x: 20.0, y: 15.0, z: 20.0 } }] }], active: 0, error: None, editing: None, edit_source_bodies: [], profile_selection_changed: false, focus: false, value_focus: None, resto
+
+===== handles dialog:* =====
+[{"name": "dialog:title", "x": 395.0, "y": 354.0}, {"name": "dialog:close", "x": 504.0, "y": 354.0}, {"name": "dialog:ui.sketch_project_geometry", "x": 443.5, "y": 405.0}, {"name": "dialog:clear:ui.sketch_project_geometry", "x": 501.0, "y": 405.0}, {"name": "dialog:row:ui.sketch_project_geometry", "x": 395.0, "y": 405.0}, {"name": "dialog:Selection Filter", "x": 443.5, "y": 438.0}, {"name": "dialog:row:Selection Filter", "x": 395.0, "y": 438.0}, {"name": "dialog:Projection Link", "x": 388.0, "y": 471.0}, {"name": "dialog:row:Projection Link", "x": 395.0, "y": 471.0}, {"name": "dialog:ok", "x": 477.0, "y": 526.0}, {"name": "dialog:OK", "x": 477.0, "y": 526.0}, {"name": "dialog:cancel", "x": 404.0, "y": 526.0}, {"name": "dialog:Cancel", "x": 404.0, "y": 526.0}, {"name": "dialog:card", "x": 3
+
+===== sketch.finish =====
+{"profiles": 0, "sketch": 2}
+
+===== inspect: dialog tras el fin =====
+"Dialog { kind: SketchProject { bodies: false, projection_link: true }, inputs: [SelInput { label: \"ui.sketch_project_geometry\", accept: 28902, multi: true, places: false, items: [Face { body: \"Body1\", index: 5, point: Vec3 { x: 20.0, y: 15.0, z: 20.0 } }] }], active: 0, error: None, editing: None, edit_source_bodies: [], profile_selection_changed: false, focus: false, value_focus: None, resto
+
+===== inspect: status =====
+null
+
+===== handles dialog:ok =====
+[{"name": "dialog:ok", "x": 1543.0, "y": 474.0}]
+
+===== inspect: dialog con el error =====
+"Dialog { kind: SketchProject { bodies: false, projection_link: true }, inputs: [SelInput { label: \"ui.sketch_project_geometry\", accept: 28902, multi: true, places: false, items: [Face { body: \"Body1\", index: 5, point: Vec3 { x: 20.0, y: 15.0, z: 20.0 } }] }], active: 0, error: Some(\"`sketch.project` is not available right now: no sketch is being edited (Create Sketch or Edit Sketch first)\"), editing: None, edit_source_bodies: [], profile_selection_changed: false, focus: false, value_focus: None, restore_value_focus: false, collapsed: false, reset_scroll: false, preview_enabled: true, repeat_after_apply: false, extra: {}, refused: Some(Refused { commands: Ok([(\"sketch.project\", Object {\"projection_link\": Bool(true), \"refs\": Array [Object {\"body\": String(\"Body1\"), \"face\": Array [Number(20.0), Number(15.0), Number(20.0)]}]})]), picks: [SelInput { label: \"ui.sketch_projec
+
+===== inspect: status =====
+{"error": true, "text": "Project is not available right now: no sketch is being edited (Create Sketch or Edit Sketch first)"}
+
+===== handles dialog:* (final) =====
+[{"name": "dialog:title", "x": 1461.0, "y": 302.0}, {"name": "dialog:close", "x": 1570.0, "y": 302.0}, {"name": "dialog:ui.sketch_project_geometry", "x": 1509.5, "y": 353.0}, {"name": "dialog:clear:ui.sketch_project_geometry", "x": 1567.0, "y": 353.0}, {"name": "dialog:row:ui.sketch_project_geometry", "x": 1461.0, "y": 353.0}, {"name": "dialog:Selection Filter", "x": 1509.5, "y": 386.0}, {"name": "dialog:row:Selection Filter", "x": 1461.0, "y": 386.0}, {"name": "dialog:Projection Link", "x": 1454.0, "y": 419.0}, {"name": "dialog:row:Projection Link", "x": 1461.0, "y": 419.0}, {"name": "dialog:report:error", "x": 1450.96875, "y": 462.0}, {"name": "dialog:button::Create Issue\u2026", "x": 1391.40625, "y": 505.0}, {"name": "dialog:create_issue", "x": 1391.40625, "y": 505.0}, {"name": "dialog:ok", "x": 1543.0, "y": 560.0}, {"name": "dialog:OK", "x": 1543.0, "y": 560.0}, {"name": "dialog:canc
+
+===== boton Create Issue presente =====
+True
+
+===== ui.screenshot =====
+{"height": 1000, "path": "/home/user/.local/share/solidcraft-orch/logs/evidence-10181/10181-project-panel-before.png", "width": 1600}
+
+===== ui.screenshot 2 =====
+{"height": 1000, "path": "/home/user/.local/share/solidcraft-orch/logs/evidence-10181/10181-project-panel-before-2.png", "width": 1600}
