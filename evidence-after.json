@@ -1,0 +1,22 @@
+{
+  "destination_sketch": 3,
+  "dialog_after_ok": null,
+  "dialog_still_open": false,
+  "link_sources": [
+    "SketchCurve { sketch: 1, curve: \"l1\" }"
+  ],
+  "linked_curves_in_the_destination": [
+    "l1"
+  ],
+  "links_lost": [
+    false
+  ],
+  "picked_in_the_dialog": [
+    {
+      "id": "l1",
+      "sketch": 1,
+      "type": "sketch_curve"
+    }
+  ],
+  "source_sketch": 1
+}

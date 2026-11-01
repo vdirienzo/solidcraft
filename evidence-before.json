@@ -1,0 +1,16 @@
+{
+  "destination_sketch": 3,
+  "dialog_after_ok": "select geometry or bodies that can be projected",
+  "dialog_still_open": true,
+  "link_sources": [],
+  "linked_curves_in_the_destination": [],
+  "links_lost": [],
+  "picked_in_the_dialog": [
+    {
+      "id": "l1",
+      "sketch": 1,
+      "type": "sketch_curve"
+    }
+  ],
+  "source_sketch": 1
+}
