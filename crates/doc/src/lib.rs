@@ -23,6 +23,7 @@ pub mod config;
 pub mod construct;
 pub mod display_quality;
 pub mod display_units;
+pub mod distribute;
 mod document;
 pub mod drawing;
 mod eval;
