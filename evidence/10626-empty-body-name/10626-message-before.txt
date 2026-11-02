@@ -1,0 +1,42 @@
+TAG=before
+MOTOR_ERROR="invalid parameters for `sketch.project`: already projected into this sketch: face of "
+STATUS={"error": true, "text": "Project: already projected into this sketch: face of "}
+MESSAGE_TEXT="Project: already projected into this sketch: face of "
+MESSAGE_REPR='Project: already projected into this sketch: face of '
+
+===== LOG =====
+===== documents =====
+{"active": 0, "batch": null, "changed_on_disk": false, "closing": null, "documents": [{"dirty": false, "name": "Untitled"}], "open_elsewhere": 0, "quitting": false, "read_only": false}
+
+===== solid.box =====
+{"bodies": ["Body1"], "changed_bodies": [], "created_bodies": ["Body1"], "feature": 1, "ms": 7.7928809999999995, "name": "Box1", "removed_bodies": [], "warning": null}
+
+===== solid.fillet =====
+{"bodies": ["Body1"], "changed_bodies": ["Body1"], "created_bodies": [], "feature": 2, "ms": 209.74800699999997, "name": "Fillet1", "removed_bodies": [], "warning": null}
+
+===== sketch.create =====
+{"attachment": "exact_face", "created": {"constraints": [], "curves": ["a1", "l1", "a2", "l2", "l3", "a3", "a4", "l4"], "dimensions": [], "points": ["p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9", "p10", "p11", "p12"]}, "name": "Sketch1", "projected": "j1", "sketch": 3}
+
+===== inspect antes del rechazo =====
+null
+
+===== engine.execute sketch.project (ok) =====
+false
+
+===== MOTOR: error crudo =====
+"invalid parameters for `sketch.project`: already projected into this sketch: face of "
+
+===== inspect: status tras el rechazo =====
+{"error": true, "text": "Project: already projected into this sketch: face of "}
+
+===== ui.messages antes de abrir =====
+{"messages": [{"at": 1793577993382.8103, "count": 1, "error": true, "text": "Project: already projected into this sketch: face of "}], "open": false}
+
+===== ui.screenshot (status) =====
+{"height": 1000, "path": "/home/user/scratch/evidence-10626/10626-refusal-status-before.png", "width": 1600}
+
+===== ui.messages abierto =====
+{"messages": [{"at": 1793577993382.8103, "count": 1, "error": true, "text": "Project: already projected into this sketch: face of "}], "open": true}
+
+===== ui.screenshot (messages) =====
+{"height": 1000, "path": "/home/user/scratch/evidence-10626/10626-refusal-messages-before.png", "width": 1600}
