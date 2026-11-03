@@ -271,6 +271,8 @@ mod sketch_pattern_tree;
 pub mod sketch_report;
 #[cfg(test)]
 mod sketch_side_ui_tests;
+#[cfg(test)]
+mod sketch_snap_start_ui_tests;
 mod sketch_state;
 pub(crate) mod sketch_text;
 mod sketch_text_handles;
