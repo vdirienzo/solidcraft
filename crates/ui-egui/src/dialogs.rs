@@ -1011,7 +1011,7 @@ impl Dialog {
                 let [rail, rail2] = crate::dialogs_sweep::rail_inputs();
                 vec![
                     SelInput::new("Profile", PROFILES, true),
-                    SelInput::new("Path", CURVES, true),
+                    SelInput::new("Path", CURVES | EDGES, true),
                     crate::dialogs_sweep::direction_input(),
                     rail,
                     rail2,
@@ -5095,9 +5095,16 @@ fn dialog_commands(app: &SolveApp, d: &Dialog) -> Result<Vec<(String, Value)>, S
             need(0, "a profile")?;
             need(1, "the path")?;
             let (sketch, idx) = profiles();
-            let path: Vec<String> = sels(d, 1).curve_ids();
-            let path_sketch = picks_sketch(app, sels(d, 1), sketch.as_u64()).ok_or("the path curves must be in one sketch")?;
-            let mut p = json!({"sketch": sketch, "profiles": idx, "path_sketch": path_sketch, "path": path, "operation": OPS.get(*operation).copied().unwrap_or("new")});
+            let mut p = json!({"sketch": sketch, "profiles": idx, "operation": OPS.get(*operation).copied().unwrap_or("new")});
+            // The path is a chain of a body's edges or the curves of a sketch (#2216).
+            if let Some((body, edges)) = crate::dialogs_sweep::edge_path(sels(d, 1))? {
+                p["path_body"] = json!(body);
+                p["path_edges"] = json!(edges);
+            } else {
+                let path: Vec<String> = sels(d, 1).curve_ids();
+                p["path_sketch"] = json!(picks_sketch(app, sels(d, 1), sketch.as_u64()).ok_or("the path curves must be in one sketch")?);
+                p["path"] = json!(path);
+            }
             crate::dialogs_sweep::params(app, opts, sels(d, 2).first(), [sels(d, 3), sels(d, 4)], &mut p)?;
             ("solid.sweep", p)
         }
@@ -6894,7 +6901,7 @@ pub fn for_feature(app: &SolveApp, id: u64, marker: Option<usize>) -> Option<Dia
             }
             d
         }
-        FeatureKind::Sweep { sketch, profiles, path_sketch, path, operation, targets, orientation, twist, scale, rails, rail_fit, .. } => {
+        FeatureKind::Sweep { sketch, profiles, path_sketch, path, path_body, path_edges, operation, targets, orientation, twist, scale, rails, rail_fit, .. } => {
             let mut d = start("solid.sweep")?;
             let (opts, direction) = crate::dialogs_sweep::SweepOpts::of(orientation, twist, scale, *rail_fit, &feature_frame(s, f.component));
             d.kind = Kind::Sweep { operation: op_index(operation), opts };
@@ -6909,7 +6916,11 @@ pub fn for_feature(app: &SolveApp, id: u64, marker: Option<usize>) -> Option<Dia
                 inp.items = items.into_iter().map(|index| Sel::Profile { sketch: sketch.0, index }).collect();
             }
             if let Some(inp) = d.inputs.get_mut(1) {
-                inp.items = path.iter().map(|id| crate::selection::curve_pick(id, path_sketch.0, s.active_sketch)).collect();
+                // The path is a chain of a body's edges or the curves of a sketch (#2216).
+                inp.items = match path_body {
+                    Some(_) => path_edges.iter().filter_map(|p| edge_sel(s, p.0)).collect(),
+                    None => path.iter().map(|id| crate::selection::curve_pick(id, path_sketch.0, s.active_sketch)).collect(),
+                };
             }
             if !targets.is_empty() {
                 d.extra.insert("targets".into(), json!(targets));

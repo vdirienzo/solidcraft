@@ -94,6 +94,27 @@ pub fn rail_inputs() -> [SelInput; 2] {
     [SelInput::new("Rail", CURVES, true), SelInput::new("Second Rail", CURVES, true)]
 }
 
+/// The path picked as a chain of a body's edges: the body and a point on each edge (#2216).
+/// `None` when the path is the curves of a sketch, which is the other way a path is picked.
+pub fn edge_path(picks: &[Sel]) -> Result<Option<(String, Vec<Value>)>, String> {
+    let edges: Vec<&Sel> = picks.iter().filter(|x| matches!(x, Sel::Edge { .. })).collect();
+    if edges.is_empty() {
+        return Ok(None);
+    }
+    if edges.len() != picks.len() {
+        return Err("the path is either the curves of a sketch or the edges of a body".into());
+    }
+    let body = match edges.first() {
+        Some(Sel::Edge { body, .. }) => body.clone(),
+        None => return Ok(None),
+    };
+    if edges.iter().any(|x| !matches!(x, Sel::Edge { body: b, .. } if *b == body)) {
+        return Err("the path's edges must be of one body".into());
+    }
+    let points = edges.iter().filter_map(|x| if let Sel::Edge { point, .. } = x { Some(crate::selection::point_value(*point)) } else { None }).collect();
+    Ok(Some((body, points)))
+}
+
 /// A feature's stored rails as the rail inputs' selections (`active`: the sketch being edited).
 pub fn rail_sels(rails: &[SweepRail], active: Option<u64>) -> [Vec<Sel>; 2] {
     let sels =
