@@ -865,6 +865,22 @@ pub(crate) fn handle(app: &mut SolveApp, ui: &mut egui::Ui, rect: Rect, resp: &e
     CameraInput { hover, scroll, mods, middle, secondary_down, primary_down, primary_pressed, inside, axes, pinch, pan, primary_nav, mode }
 }
 
+/// Whether the view is moving under a pointer that stays where it is: the wheel, the
+/// trackpad or the pinch.
+///
+/// Such a gesture owns the view, not the pointer: the face under the pointer keeps its
+/// highlight for the whole gesture, the way Fusion does (#2130). The caller freezes the
+/// hover instead of clearing it. A mouse drag, the spin and an animated view move the
+/// pointer's own target instead, and their hover goes off as before.
+pub(crate) fn view_moving(app: &SolveApp, scroll: f32, pinch: f32, pan: egui::Vec2) -> bool {
+    scroll != 0.0
+        || pinch != 1.0
+        || pan != egui::Vec2::ZERO
+        // A bracketed trackpad scroll keeps the gesture alive between its events, so the
+        // highlight does not blink while the fingers rest between two moves.
+        || app.viewport.trackpad_gesture
+}
+
 /// The 3D mouse's motion this frame (#1336), on a page `rect` whose camera may do `caps`: the cap
 /// pans and zooms every page, and turns the view where the page may orbit. In a sketch, turning
 /// stays off while the camera is in its initial sketch orientation, unless the user lets the 3D
