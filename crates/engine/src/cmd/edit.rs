@@ -295,7 +295,9 @@ fn rename(s: &mut Session, p: &Value) -> Result<Value> {
     let name =
         str_(p, "name").map(str::trim).filter(|n| !n.is_empty() && n.len() <= 128).ok_or_else(|| bad(cmd, "`name` must be 1…128 characters"))?;
     let old = s.doc.feature(id).map(|f| f.name.clone()).ok_or_else(|| bad(cmd, "feature"))?;
-    if s.doc.features.iter().any(|f| f.name == name && f.id != id) {
+    // A name belongs to one feature: another one may not take it, the rule a new feature's name
+    // follows (#2160).
+    if s.doc.feature(id).is_some_and(|f| s.doc.feature_name_taken(name, &f.kind, Some(id))) {
         return Err(bad(cmd, format!("another feature is called `{name}`")));
     }
     if s.doc.feature(id).is_some_and(|f| matches!(f.kind, FeatureKind::ConstructionPlane { .. })) {

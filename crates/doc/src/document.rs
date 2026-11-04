@@ -4004,6 +4004,22 @@ impl Document {
         None
     }
 
+    /// Whether the name `name` is taken by another feature of the design: a name belongs to one
+    /// feature, so a new feature may not take the name another one has and a rename to it is
+    /// refused, the rule `timeline.rename` follows (#2160). The feature built from a sketch may
+    /// take that sketch's own name (a sketch and the extrude built from it share one, #1990). A
+    /// plane's name is a plane reference's too, so it must be free of every other feature
+    /// (#10707).
+    pub fn feature_name_taken(&self, name: &str, kind: &FeatureKind, id: Option<u64>) -> bool {
+        self.features.iter().filter(|f| Some(f.id) != id).any(|f| {
+            if f.name != name {
+                return false;
+            }
+            // The feature built from a sketch may take that sketch's name (#1990).
+            !matches!(f.kind, FeatureKind::Sketch { .. }) || !kind.input_sketches().contains(&f.id)
+        })
+    }
+
     /// Insert a feature at the marker (or the end) and return its id.
     pub fn add_feature(&mut self, kind: FeatureKind, name: Option<&str>) -> Result<u64> {
         if self.features.len() >= MAX_FEATURES {
@@ -4019,10 +4035,9 @@ impl Document {
             Some(n) if !n.trim().is_empty() => n.trim().to_string(),
             _ => self.unique_name(kind.base_name()),
         };
-        // Plane references share the feature namespace. A duplicate would silently select
-        // the first feature. Other shared names (a sketch and its extrude) remain supported.
-        let is_plane = matches!(kind, FeatureKind::ConstructionPlane { .. });
-        if self.features.iter().any(|f| f.name == name && (is_plane || matches!(f.kind, FeatureKind::ConstructionPlane { .. }))) {
+        // A name belongs to one feature: another one may not take it, the rule
+        // `timeline.rename` follows (#2160).
+        if self.feature_name_taken(&name, &kind, None) {
             return Err(DocError::Invalid(format!("another feature is called `{name}`")));
         }
         let id = self.next_id.max(1);

@@ -727,6 +727,65 @@ fn construction_plane_name_collisions_leave_the_document_unchanged() {
     }
 }
 
+/// #2160: a name belongs to one feature. A new feature may not take the name another feature
+/// already has, the rule `timeline.rename` follows: the name would stand for two features and
+/// every lookup by it would pick one of them.
+#[test]
+fn a_feature_name_is_taken_by_another_feature() {
+    let mut doc = Document::new("names");
+    let block = || FeatureKind::Box {
+        corner: ["0".into(), "0".into(), "0".into()],
+        length: "10".into(),
+        width: "10".into(),
+        height: "10".into(),
+        operation: Operation::NewBody,
+    };
+    doc.add_feature(FeatureKind::Sketch { plane: PlaneRef::Origin { name: "XY".into() }, sketch: Sketch::new() }, Some("Block")).unwrap();
+    let taken = doc.add_feature(block(), Some("Block"));
+    assert!(taken.is_err(), "a second feature took the name `Block`");
+    let error = taken.unwrap_err().to_string();
+    assert!(error.contains("another feature is called `Block`"), "{error}");
+    // A free name is taken, and the refused one left the design as it was.
+    let other = doc.add_feature(block(), Some("Other")).unwrap();
+    assert_eq!(doc.feature(other).unwrap().name, "Other");
+    assert_eq!(doc.features.iter().filter(|f| f.name == "Block").count(), 1);
+}
+
+/// #2160: the feature built from a sketch may take that sketch's own name (#1990), as
+/// `solid.extrude` does; every other name is the one feature's alone.
+#[test]
+fn a_feature_may_take_the_name_of_the_sketch_it_is_built_from() {
+    let mut doc = Document::new("names");
+    let sketch =
+        doc.add_feature(FeatureKind::Sketch { plane: PlaneRef::Origin { name: "XY".into() }, sketch: Sketch::new() }, Some("Block")).unwrap();
+    let extrude = doc.add_feature(
+        FeatureKind::Extrude {
+            thin: None,
+            sketch: crate::SketchId(sketch),
+            profiles: ProfileSel::All,
+            extent: Extent {
+                convention: crate::ExtrudeConvention::LegacyPerSide,
+                distance: "20".into(),
+                direction: Direction::Positive,
+                distance2: None,
+                start_offset: None,
+                through_all: false,
+                taper: None,
+                corner: Default::default(),
+                to: None,
+                to_offset: None,
+                from: None,
+                to_body_apart: false,
+            },
+            operation: Operation::NewBody,
+            targets: vec![],
+        },
+        Some("Block"),
+    );
+    assert!(extrude.is_ok(), "the feature built from a sketch may take its name: {extrude:?}");
+    assert_eq!(doc.features.iter().filter(|f| f.name == "Block").count(), 2);
+}
+
 #[test]
 fn empty_boolean_targets_name_overlapping_component() {
     for (operation, offset) in [(Operation::Cut, 0.0), (Operation::Intersect, 0.0), (Operation::Cut, 40.0)] {
