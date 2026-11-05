@@ -1,0 +1,65 @@
+{
+  "offset_video_menos_script": 1.5002384185791016,
+  "captions": [
+    {
+      "key": "cap-hover",
+      "text": "1. HOVER: the pointer is over the top face - the face lights up",
+      "desde_t": 3.6999999999999997,
+      "hasta_t": 7.161238418579101
+    },
+    {
+      "key": "cap-wheel",
+      "text": "2. MOUSE WHEEL: the view zooms, the pointer does NOT - HIGHLIGHT STAYS ON",
+      "desde_t": 7.161238418579101,
+      "hasta_t": 10.9632384185791
+    },
+    {
+      "key": "cap-pinch",
+      "text": "3. TRACKPAD TWO-FINGER GESTURE (ctrl+wheel): the view moves, the pointer does NOT - HIGHLIGHT STAYS ON",
+      "desde_t": 10.9632384185791,
+      "hasta_t": 17.290000000000003
+    },
+    {
+      "key": "cap-drag",
+      "text": "4. MOUSE DRAG (middle button): the pointer moves - HIGHLIGHT GOES OFF",
+      "desde_t": 17.290000000000003,
+      "hasta_t": 20.01
+    },
+    {
+      "key": "cap-back",
+      "text": "5. on release the hover is picked again - the highlight is back",
+      "desde_t": 20.01,
+      "hasta_t": 1000000000.0
+    }
+  ],
+  "tramos_medidos": [
+    {
+      "estado": "OFF",
+      "desde_frame": 0,
+      "hasta_frame": 114,
+      "desde_t": 0.0,
+      "hasta_t": 4.56
+    },
+    {
+      "estado": "ON",
+      "desde_frame": 115,
+      "hasta_frame": 435,
+      "desde_t": 4.6,
+      "hasta_t": 17.4
+    },
+    {
+      "estado": "OFF",
+      "desde_frame": 436,
+      "hasta_frame": 503,
+      "desde_t": 17.44,
+      "hasta_t": 20.12
+    },
+    {
+      "estado": "ON",
+      "desde_frame": 504,
+      "hasta_frame": 546,
+      "desde_t": 20.16,
+      "hasta_t": 21.84
+    }
+  ]
+}

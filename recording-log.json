@@ -1,0 +1,177 @@
+{
+  "app_build": "slot-2130 (ci profile), PR head 285299b64bf718349f486185b998596c0e0aac28",
+  "display": ":97 (Xvfb 1600x1000x24), renderer software (lavapipe)",
+  "input": "X11 real: XWarpPointer + XTestFakeButtonEvent + XTestFakeMotionEvent",
+  "ffmpeg_started_epoch": 1793909802.5764124,
+  "timeline_t0_epoch": 1793909804.0766509,
+  "face_screen": [
+    800.0,
+    466.8592834472656
+  ],
+  "hover_on_face": {
+    "body": "Body1",
+    "index": 0,
+    "point": [
+      200.77321569680248,
+      200.91799402050128,
+      100.00000000000045
+    ],
+    "type": "face"
+  },
+  "hover_during_mouse_wheel": {
+    "body": "Body1",
+    "index": 0,
+    "point": [
+      200.77321569680294,
+      200.91799402050128,
+      100.00000000000023
+    ],
+    "type": "face"
+  },
+  "hover_during_trackpad_pinch": {
+    "body": "Body1",
+    "index": 0,
+    "point": [
+      200.77321569680305,
+      200.9179940205014,
+      100.0
+    ],
+    "type": "face"
+  },
+  "pointer_during_pinch": [
+    724,
+    504
+  ],
+  "camera_before_wheel": {
+    "distance": 980.0,
+    "target": [
+      200.0,
+      200.0,
+      50.0
+    ]
+  },
+  "camera_after_wheel": {
+    "distance": 683.7227995496103,
+    "target": [
+      200.23376141019708,
+      200.27753132492288,
+      65.11618369644852
+    ]
+  },
+  "camera_before_pinch": {
+    "distance": 683.7227995496103,
+    "target": [
+      200.23376141019708,
+      200.27753132492288,
+      65.11618369644852
+    ]
+  },
+  "camera_after_pinch": {
+    "distance": 477.017210840772,
+    "target": [
+      200.39685121204056,
+      200.4711583600646,
+      75.66238720200151
+    ]
+  },
+  "hover_during_mouse_drag": null,
+  "hover_at_end_of_drag": null,
+  "hover_after_mouse_drag": {
+    "body": "Body1",
+    "index": 0,
+    "point": [
+      200.33521264170088,
+      200.3979784708847,
+      100.0
+    ],
+    "type": "face"
+  },
+  "events": [
+    {
+      "name": "PUNTERO LEJOS (sin highlight)",
+      "script_t": 0.3
+    },
+    {
+      "name": "puntero real lejos del modelo en (1380, 120): hover=None",
+      "script_t": 1.445
+    },
+    {
+      "name": "PUNTERO ENTRA EN LA CARA",
+      "script_t": 3.0
+    },
+    {
+      "name": "el highlight se encendio: {'body': 'Body1', 'index': 0, 'point': [200.77321569680248, 200.91799402050128, 100.00000000000045], 'type': 'face'}",
+      "script_t": 4.382
+    },
+    {
+      "name": "RUEDA DEL MOUSE (el puntero NO se mueve)",
+      "script_t": 5.811
+    },
+    {
+      "name": "el puntero NO se movio -> (800, 466); hover={'body': 'Body1', 'index': 0, 'point': [200.77321569680294, 200.91799402050128, 100.00000000000023], 'type': 'face'}",
+      "script_t": 7.29
+    },
+    {
+      "name": "GESTO DE TRACKPAD DE DOS DEDOS (ctrl+wheel) - el puntero NO se mueve",
+      "script_t": 9.613
+    },
+    {
+      "name": "FIN DEL GESTO DE TRACKPAD",
+      "script_t": 9.898
+    },
+    {
+      "name": "el puntero NO se movio -> (800, 466); hover={'body': 'Body1', 'index': 0, 'point': [200.77321569680305, 200.9179940205014, 100.0], 'type': 'face'}",
+      "script_t": 11.238
+    },
+    {
+      "name": "el highlight sigue encendido tras el gesto: {'body': 'Body1', 'index': 0, 'point': [200.77321569680305, 200.9179940205014, 100.0], 'type': 'face'}",
+      "script_t": 13.609
+    },
+    {
+      "name": "PUNTERO DE VUELTA A LA CARA",
+      "script_t": 15.006
+    },
+    {
+      "name": "hover antes del drag: {'body': 'Body1', 'index': 0, 'point': [200.33521264170088, 200.39797847088482, 100.0], 'type': 'face'}",
+      "script_t": 15.857
+    },
+    {
+      "name": "ARRASTRE DE MOUSE (boton del medio) - el highlight se apaga",
+      "script_t": 15.857
+    },
+    {
+      "name": "fin del arrastre: el puntero se movio",
+      "script_t": 18.486
+    },
+    {
+      "name": "SE SUELTA EL BOTON",
+      "script_t": 18.486
+    },
+    {
+      "name": "al soltar, el hover se vuelve a tomar: {'body': 'Body1', 'index': 0, 'point': [200.33521264170088, 200.3979784708847, 100.0], 'type': 'face'}",
+      "script_t": 21.006
+    },
+    {
+      "name": "highlight final: {'body': 'Body1', 'index': 0, 'point': [200.33521264170088, 200.3979784708847, 100.0], 'type': 'face'}",
+      "script_t": 21.245
+    }
+  ],
+  "log": [
+    "=== escenario: una caja sola, camara isometrica que la deja en pantalla ===",
+    "  cara de arriba en pantalla: (800, 467)",
+    "  puntero real lejos del modelo en (1380, 120): hover=None",
+    "  grabando 22.0s -> /home/user/.local/share/solidcraft-orch/evidence/2130-hover-pan/_work/raw.mp4",
+    "  [ 1.45s] puntero real lejos del modelo en (1380, 120): hover=None",
+    "  [ 4.38s] el highlight se encendio: {'body': 'Body1', 'index': 0, 'point': [200.77321569680248, 200.91799402050128, 100.00000000000045], 'type': 'face'}",
+    "  [ 7.29s] el puntero NO se movio -> (800, 466); hover={'body': 'Body1', 'index': 0, 'point': [200.77321569680294, 200.91799402050128, 100.00000000000023], 'type': 'face'}",
+    "  camara: distance 980.0 -> 683.7",
+    "  [11.24s] el puntero NO se movio -> (800, 466); hover={'body': 'Body1', 'index': 0, 'point': [200.77321569680305, 200.9179940205014, 100.0], 'type': 'face'}",
+    "  camara: distance 683.7 -> 477.0  target [200.23376141019708, 200.27753132492288, 65.11618369644852] -> [200.39685121204056, 200.4711583600646, 75.66238720200151]",
+    "  [13.61s] el highlight sigue encendido tras el gesto: {'body': 'Body1', 'index': 0, 'point': [200.77321569680305, 200.9179940205014, 100.0], 'type': 'face'}",
+    "  [15.86s] hover antes del drag: {'body': 'Body1', 'index': 0, 'point': [200.33521264170088, 200.39797847088482, 100.0], 'type': 'face'}",
+    "  [18.49s] fin del arrastre: el puntero se movio",
+    "  [21.01s] al soltar, el hover se vuelve a tomar: {'body': 'Body1', 'index': 0, 'point': [200.33521264170088, 200.3979784708847, 100.0], 'type': 'face'}",
+    "  [21.25s] highlight final: {'body': 'Body1', 'index': 0, 'point': [200.33521264170088, 200.3979784708847, 100.0], 'type': 'face'}",
+    "  grabacion terminada"
+  ]
+}
