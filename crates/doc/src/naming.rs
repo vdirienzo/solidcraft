@@ -1364,6 +1364,23 @@ mod tests {
 
     use super::*;
 
+    /// A curve id may hold a character outside ASCII (`F2:side:曲`), and the name of a blend face
+    /// holds the curve id of the edge it replaced. The name was read a byte at a time, which cut
+    /// that character in half and panicked.
+    #[test]
+    fn test_face_name_end_handles_non_ascii_curve_id() {
+        let read = |name: &str| std::panic::catch_unwind(|| face_name_end(name, 0)).expect("a name with a non-ASCII curve id must not panic");
+        // The name of a blend face holds the whole edge it replaced: the `|` inside it is its own.
+        let name = "F5:blend(F2:side:曲|F2:top)";
+        let end = read(name).expect("the name of one face ends at the end of the text");
+        assert_eq!(&name[..end], name, "the whole name is the one face name");
+        // A `|` outside the blend's own edge separates two faces.
+        let pair = "F5:blend(F2:side:曲|F2:top)|F6:+y";
+        let end = read(pair).expect("the first face of a pair ends at its bar");
+        assert_eq!(&pair[..end], "F5:blend(F2:side:曲|F2:top)", "the first face of a pair is the blend face");
+        assert_eq!(face_name_end(pair, end + 1), Some(pair.len()), "the second face of a pair ends at the end of the text");
+    }
+
     /// A cone's tip repeats its apex vertex, so a triangle can have a zero-length edge. The nearest
     /// point on it must still be a real point (it used to be NaN, which broke picking the tip).
     #[test]
