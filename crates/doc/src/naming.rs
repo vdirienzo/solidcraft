@@ -378,38 +378,33 @@ fn edge_sides(edge: &str) -> Option<(&str, &str)> {
 fn face_name_end(s: &str, from: usize) -> Option<usize> {
     const MARK: &str = ":blend:";
     // The faces still to read: a blend face's name is read as the two of its edge.
-    let (mut pending, mut at) = (1usize, from);
+    let mut pending = 1usize;
     let mut depth = 0usize;
-    while at < s.len() {
-        let rest = &s[at..];
+    // The text is walked by character: a curve id may hold a character outside ASCII, and a byte
+    // at a time would cut it in half.
+    let mut chars = s.get(from..)?.char_indices();
+    while let Some((i, c)) = chars.next() {
+        let at = from + i;
         // The older form: the text after the mark holds an edge of its own.
-        if depth == 0 && rest.starts_with(MARK) {
+        if depth == 0 && c == ':' && s.get(at..)?.starts_with(MARK) {
             pending += 1;
-            at += MARK.len();
+            // The mark is ASCII: it is as many characters as it is bytes.
+            for _ in 1..MARK.len() {
+                let _ = chars.next();
+            }
             continue;
         }
-        match rest.as_bytes()[0] {
-            b'(' => {
-                depth += 1;
-                at += 1;
-                continue;
-            }
-            b')' => {
-                depth = depth.saturating_sub(1);
-                at += 1;
-                continue;
-            }
-            b'|' if depth == 0 => {
+        match c {
+            '(' => depth += 1,
+            ')' => depth = depth.saturating_sub(1),
+            '|' if depth == 0 => {
                 pending -= 1;
                 if pending == 0 {
                     return Some(at);
                 }
-                at += 1;
-                continue;
             }
             _ => {}
         }
-        at += 1;
     }
     (pending == 1).then_some(s.len())
 }
