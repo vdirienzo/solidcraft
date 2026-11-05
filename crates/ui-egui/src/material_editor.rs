@@ -124,7 +124,7 @@ impl Draft {
         if !solidcraft_engine::doc::valid_density(density) {
             return Err(tr("material.editor.density_range").to_string());
         }
-        let card = if self.card_enabled { Some(self.card.build()?) } else { None };
+        let card = if self.card_enabled { Some(self.card.build(Some(density_kg_m3(density)))?) } else { None };
         if let Some(original) = &self.original {
             if doc.user_material(&original.name) != Some(original) {
                 return Err(tr("material.editor.stale").to_string());
@@ -167,12 +167,21 @@ pub(crate) struct CardDraft {
     pub(crate) family: Family,
     pub(crate) sources: Vec<Source>,
     pub(crate) properties: Vec<PropertyDraft>,
-    add_kind: usize,
+    /// The user wrote their own designation; until then it follows the material name.
+    designation_owned: bool,
+    add_kind: &'static str,
 }
 
 impl CardDraft {
     fn empty(name: &str) -> Self {
-        Self { designation: name.into(), family: Family::Other, sources: Vec::new(), properties: Vec::new(), add_kind: 0 }
+        Self {
+            designation: name.into(),
+            family: Family::Other,
+            sources: Vec::new(),
+            properties: Vec::new(),
+            designation_owned: false,
+            add_kind: "density",
+        }
     }
     fn from_card(card: &MaterialCard) -> Self {
         Self {
@@ -180,19 +189,69 @@ impl CardDraft {
             family: card.family,
             sources: card.sources.clone(),
             properties: card.properties.iter().map(PropertyDraft::from_property).collect(),
-            add_kind: 0,
+            designation_owned: true,
+            add_kind: "density",
         }
     }
-    pub(crate) fn build(&self) -> Result<MaterialCard, String> {
+    /// The property types this card does not carry yet: a card holds each kind once.
+    fn remaining_kinds(&self) -> Vec<&'static str> {
+        KINDS.iter().copied().filter(|kind| !self.properties.iter().any(|p| p.kind == *kind)).collect()
+    }
+    /// A property names a source. A card that carries properties but no source gets
+    /// an implicit one, so the user never has to author literature to save a card.
+    fn normalize_sources(&mut self) {
+        if self.sources.is_empty() && !self.properties.is_empty() {
+            self.sources.push(implicit_source());
+        }
+        let first = self.sources.first().map(|s| s.id.clone()).unwrap_or_default();
+        for property in &mut self.properties {
+            if !self.sources.iter().any(|s| s.id == property.source_id) {
+                property.source_id = first.clone();
+            }
+        }
+    }
+    fn add_property(&mut self, kind: &'static str, assigned_kg_m3: Option<f64>) {
+        self.normalize_sources();
+        let source_id = self.sources.first().map(|s| s.id.clone()).unwrap_or_default();
+        let mut property = PropertyDraft::empty(kind, source_id);
+        property.mirror_density(assigned_kg_m3);
+        self.properties.push(property);
+    }
+    pub(crate) fn build(&self, assigned_kg_m3: Option<f64>) -> Result<MaterialCard, String> {
+        let mut sources = self.sources.clone();
+        if sources.is_empty() && !self.properties.is_empty() {
+            sources.push(implicit_source());
+        }
+        let fallback = sources.first().map(|s| s.id.clone()).unwrap_or_default();
+        let properties = self
+            .properties
+            .iter()
+            .map(|property| {
+                let source_id =
+                    sources.iter().find(|s| s.id == property.source_id).map(|s| s.id.clone()).unwrap_or_else(|| fallback.clone());
+                property.build(&source_id, assigned_kg_m3)
+            })
+            .collect::<Result<Vec<_>, _>>()?;
         let card = MaterialCard {
             schema_version: 1,
             designation: self.designation.clone(),
             family: self.family,
-            sources: self.sources.clone(),
-            properties: self.properties.iter().map(PropertyDraft::build).collect::<Result<_, _>>()?,
+            sources,
+            properties,
         };
         card.validate().map_err(|e| e.to_string())?;
         Ok(card)
+    }
+}
+
+/// The source a card carries when the user writes no literature of their own.
+fn implicit_source() -> Source {
+    Source {
+        id: "source-1".into(),
+        title: tr("material.editor.default_source_title").to_string(),
+        kind: SourceKind::UserSupplied,
+        license: None,
+        reference: None,
     }
 }
 
@@ -205,6 +264,8 @@ pub(crate) struct PropertyDraft {
     pub(crate) source_id: String,
     /// Temperature K, moisture kg/kg dry basis, strain rate s^-1, state.
     pub(crate) conditions: [String; 4],
+    /// The user wrote a density of their own; until then it shows the assigned density.
+    density_edited: bool,
 }
 
 impl PropertyDraft {
@@ -221,6 +282,7 @@ impl PropertyDraft {
             axes: MaterialAxes::Material123,
             source_id,
             conditions: Default::default(),
+            density_edited: false,
         }
     }
     fn from_property(property: &Property) -> Self {
@@ -253,13 +315,33 @@ impl PropertyDraft {
                 c.strain_rate_per_s.map(|v| v.to_string()).unwrap_or_default(),
                 c.state.clone().unwrap_or_default(),
             ],
+            density_edited: true,
         }
     }
-    fn build(&self) -> Result<Property, String> {
+    /// The density property starts from the assigned density until the user writes
+    /// a value of their own; a card never carries a density nobody entered.
+    fn mirror_density(&mut self, assigned_kg_m3: Option<f64>) {
+        if self.kind != "density" || self.density_edited {
+            return;
+        }
+        if let Some(value) = self.values.first_mut() {
+            *value = assigned_kg_m3.map(density_text).unwrap_or_default();
+        }
+    }
+    /// The density the card carries: the user's own value, or the assigned density
+    /// while the user has written none. A blank value never becomes an invented zero.
+    fn density_value(&self, assigned_kg_m3: Option<f64>) -> Result<f64, String> {
+        let text = self.values.first().map(String::as_str).unwrap_or("").trim();
+        if text.is_empty() && !self.density_edited && let Some(kg_m3) = assigned_kg_m3 {
+            return Ok(kg_m3);
+        }
+        number(text, self.kind)
+    }
+    fn build(&self, source_id: &str, assigned_kg_m3: Option<f64>) -> Result<Property, String> {
         let n = |i: usize| number(self.values.get(i).map(String::as_str).unwrap_or(""), self.kind);
         let vector = |offset| Ok::<_, String>([n(offset)?, n(offset + 1)?, n(offset + 2)?]);
         let data = match self.kind {
-            "density" => PropertyData::Density { kg_m3: n(0)? },
+            "density" => PropertyData::Density { kg_m3: self.density_value(assigned_kg_m3)? },
             "elasticity" if self.orthotropic => PropertyData::Elasticity {
                 model: Elasticity::Orthotropic {
                     axes: self.axes,
@@ -284,7 +366,7 @@ impl PropertyDraft {
         };
         Ok(Property {
             data,
-            source_id: self.source_id.clone(),
+            source_id: source_id.to_string(),
             conditions: Conditions {
                 temperature_k: optional(0)?,
                 moisture_dry_basis_kg_kg: optional(1)?,
@@ -297,6 +379,28 @@ impl PropertyDraft {
 
 fn number(value: &str, field: &str) -> Result<f64, String> {
     crate::prefs::parse_number(value).ok_or_else(|| format!("{field}: {}", tr("material.editor.number_required")))
+}
+
+/// A number without the artefact of a binary fraction: 7.85 g/cm³ reads as 7850
+/// kg/m³, not as 7849.999999999999.
+fn tidy(value: f64) -> f64 {
+    format!("{value:.14e}").parse::<f64>().unwrap_or(value)
+}
+
+/// An assigned density in g/cm³ as kg/m³, the unit a card carries.
+fn density_kg_m3(density_g_cm3: f64) -> f64 {
+    tidy(density_g_cm3 * 1000.0)
+}
+
+/// A density in kg/m³ as the card writes it.
+fn density_text(kg_m3: f64) -> String {
+    tidy(kg_m3).to_string()
+}
+
+/// The assigned density in kg/m³, when the user wrote a valid one.
+fn assigned_density_kg_m3(density_g_cm3: &str) -> Option<f64> {
+    let grams = crate::prefs::parse_number(density_g_cm3)?;
+    solidcraft_engine::doc::valid_density(grams).then(|| density_kg_m3(grams))
 }
 
 fn field(ui: &mut egui::Ui, label: &str, id: &str, value: &mut String, unit: &str) {
@@ -321,7 +425,7 @@ fn axes(ui: &mut egui::Ui, id: &str, axes: &mut MaterialAxes) {
     *axes = if index == 1 { MaterialAxes::WoodLrt } else { MaterialAxes::Material123 };
 }
 
-fn property_rows(ui: &mut egui::Ui, property: &mut PropertyDraft, sources: &[Source]) {
+fn property_rows(ui: &mut egui::Ui, property: &mut PropertyDraft, sources: &[Source], assigned_kg_m3: Option<f64>) {
     let kind = property.kind;
     if kind == "elasticity" {
         let mut index = usize::from(property.orthotropic);
@@ -354,31 +458,50 @@ fn property_rows(ui: &mut egui::Ui, property: &mut PropertyDraft, sources: &[Sou
             "specific_heat" => ("c".into(), "J/(kg·K)"),
             _ => ("σ".into(), "Pa"),
         };
+        let before = value.clone();
         field(ui, &label, &format!("{kind}:value:{i}"), value, unit);
-    }
-    let mut selected = sources.iter().position(|s| s.id == property.source_id).map_or(0, |i| i + 1);
-    let labels: Vec<_> = std::iter::once(tr("ui.material_review.unknown")).chain(sources.iter().map(|s| s.id.as_str())).collect();
-    let before = selected;
-    ui_kit::choice_row(ui, tr("ui.material_review.source"), &format!("{kind}:source"), &mut selected, &labels);
-    if selected != before {
-        property.source_id = selected.checked_sub(1).and_then(|i| sources.get(i)).map(|s| s.id.clone()).unwrap_or_default();
-    }
-    ui_kit::section(ui, format!("{kind}:conditions"), tr("ui.material_review.conditions"), false, |ui| {
-        let labels = ["material.editor.temperature", "material.editor.moisture", "material.editor.strain_rate", "material.editor.state"];
-        let units = ["K", "kg/kg", "s⁻¹", ""];
-        for (i, value) in property.conditions.iter_mut().enumerate() {
-            field(ui, tr(labels.get(i).copied().unwrap_or("")), &format!("{kind}:condition:{i}"), value, units.get(i).copied().unwrap_or(""));
+        if kind == "density" {
+            if *value != before {
+                // A density the user wrote replaces the mirrored one; clearing it returns to the mirror.
+                property.density_edited = !value.trim().is_empty();
+            }
+            property.mirror_density(assigned_kg_m3);
         }
-    });
+    }
+    if kind == "density" {
+        ui_kit::text(ui, tr("material.editor.density_hint"), ui_kit::Text::Note("physical_density_hint"));
+    }
+    if !sources.is_empty() {
+        // A property always names a source the card carries.
+        let mut selected = sources.iter().position(|s| s.id == property.source_id).unwrap_or(0);
+        let labels: Vec<_> = sources.iter().map(|s| s.id.as_str()).collect();
+        let before = selected;
+        ui_kit::choice_row(ui, tr("ui.material_review.source"), &format!("{kind}:source"), &mut selected, &labels);
+        if selected != before {
+            property.source_id = sources.get(selected).map(|s| s.id.clone()).unwrap_or_default();
+        }
+    }
 }
 
-fn card_rows(ui: &mut egui::Ui, card: &mut CardDraft) {
+fn card_rows(ui: &mut egui::Ui, card: &mut CardDraft, assigned_kg_m3: Option<f64>, material_name: &str) {
+    let before = card.designation.clone();
     field(ui, tr("material.editor.designation"), "designation", &mut card.designation, "");
+    if card.designation != before {
+        // A designation the user wrote is theirs; clearing it returns to the material name.
+        card.designation_owned = !card.designation.trim().is_empty();
+        if !card.designation_owned {
+            card.designation = material_name.to_string();
+        }
+    }
+    ui_kit::text(ui, tr("material.editor.designation_hint"), ui_kit::Text::Note("physical_designation"));
     let mut family = FAMILIES.iter().position(|v| v == &card.family).unwrap_or(0);
     let labels =
         ["material.editor.other", "material.editor.metal", "material.editor.polymer", "material.editor.wood", "material.editor.glass"].map(tr);
     ui_kit::choice_row(ui, tr("material.editor.family"), "physical:family", &mut family, &labels);
     card.family = FAMILIES.get(family).copied().unwrap_or(Family::Other);
+    // A card with properties but no source carries an implicit one, so the user
+    // never has to author literature to save a card.
+    card.normalize_sources();
     ui_kit::section_count(ui, "physical:sources", tr("material.editor.sources"), false, Some(card.sources.len()), |ui| {
         let mut remove = None;
         for (i, source) in card.sources.iter_mut().enumerate() {
@@ -409,14 +532,16 @@ fn card_rows(ui: &mut egui::Ui, card: &mut CardDraft) {
         }
         if ui_kit::button(ui, tr("material.editor.add_source"), ui_kit::Button::Enabled(card.sources.len() < 32)).clicked() {
             let id = (1..=33).map(|i| format!("source-{i}")).find(|id| card.sources.iter().all(|s| &s.id != id)).unwrap_or_default();
-            card.sources.push(Source { id, title: String::new(), kind: SourceKind::UserSupplied, license: None, reference: None });
+            // The title is prefilled so a new source is usable; the user rewrites it.
+            let title = tr("material.editor.default_source_title").to_string();
+            card.sources.push(Source { id, title, kind: SourceKind::UserSupplied, license: None, reference: None });
         }
     });
     let mut remove = None;
     for (i, property) in card.properties.iter_mut().enumerate() {
         let label = format!("ui.material_review.{}", property.kind);
         ui_kit::section(ui, format!("physical:property:{}", property.kind), tr(&label), false, |ui| {
-            property_rows(ui, property, &card.sources);
+            property_rows(ui, property, &card.sources, assigned_kg_m3);
             if ui_kit::button(ui, tr("Remove"), ui_kit::Button::Normal).clicked() {
                 remove = Some(i);
             }
@@ -425,12 +550,19 @@ fn card_rows(ui: &mut egui::Ui, card: &mut CardDraft) {
     if let Some(i) = remove {
         card.properties.remove(i);
     }
-    let labels: Vec<_> = KINDS.iter().map(|kind| tr(&format!("ui.material_review.{kind}")).to_string()).collect();
-    let refs: Vec<_> = labels.iter().map(String::as_str).collect();
-    ui_kit::choice_row(ui, tr("material.editor.add_property"), "physical:add_kind", &mut card.add_kind, &refs);
-    let kind = KINDS.get(card.add_kind).copied().unwrap_or("density");
-    if ui_kit::button(ui, tr("Add"), ui_kit::Button::Enabled(card.properties.iter().all(|p| p.kind != kind))).clicked() {
-        card.properties.push(PropertyDraft::empty(kind, card.sources.first().map(|s| s.id.clone()).unwrap_or_default()));
+    // A card holds each property kind once: the dropdown offers what is missing.
+    let remaining = card.remaining_kinds();
+    if remaining.is_empty() {
+        ui_kit::text(ui, tr("material.editor.all_properties_added"), ui_kit::Text::Note("physical_add_kind"));
+    } else {
+        let labels: Vec<_> = remaining.iter().map(|kind| tr(&format!("ui.material_review.{kind}")).to_string()).collect();
+        let refs: Vec<_> = labels.iter().map(String::as_str).collect();
+        let mut index = remaining.iter().position(|kind| *kind == card.add_kind).unwrap_or(0);
+        ui_kit::choice_row(ui, tr("material.editor.add_property"), "physical:add_kind", &mut index, &refs);
+        card.add_kind = remaining.get(index).copied().unwrap_or_else(|| remaining.first().copied().unwrap_or("density"));
+        if ui_kit::button(ui, tr("Add"), ui_kit::Button::Enabled(true)).clicked() {
+            card.add_property(card.add_kind, assigned_kg_m3);
+        }
     }
 }
 
@@ -487,14 +619,15 @@ pub(crate) fn rows(app: &mut SolveApp, ui: &mut egui::Ui, index: &mut usize, edi
         if let Some(look) = &draft.copied_appearance {
             ui_kit::text(ui, &format!("{}: {}", tr("material.editor.preserved_appearance"), look.name), ui_kit::Text::Note("physical_appearance"));
         }
-        if ui_kit::checkbox(ui, tr("material.editor.engineering_card"), &mut draft.card_enabled).changed()
-            && draft.card_enabled
-            && draft.card.designation.is_empty()
-        {
-            draft.card.designation = draft.name.clone();
-        }
+        ui_kit::checkbox(ui, tr("material.editor.engineering_card"), &mut draft.card_enabled);
         if draft.card_enabled {
-            card_rows(ui, &mut draft.card);
+            // The designation follows the material name until the user writes their own.
+            let material_name = draft.name.trim().to_string();
+            if !draft.card.designation_owned {
+                draft.card.designation = material_name.clone();
+            }
+            let assigned_kg_m3 = assigned_density_kg_m3(&draft.density);
+            card_rows(ui, &mut draft.card, assigned_kg_m3, &material_name);
             ui_kit::text(ui, tr("ui.material_review.claims"), ui_kit::Text::Note("physical_claims"));
         } else {
             ui_kit::text(ui, tr("material.editor.unknown_card"), ui_kit::Text::Note("unknown_card"));
