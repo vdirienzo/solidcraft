@@ -97,7 +97,7 @@ pub struct NavPreset {
     pub reverse_drag_zoom: bool,
     /// Choosing the preset sets what a middle double-click does (`None` leaves it as it is).
     pub middle_double_click: Option<&'static str>,
-    /// Choosing the preset sets "Right drag orbits" (`None` leaves it as it is).
+    /// Choosing the preset sets "Right drag orbits" (`None` follows the preset's bindings).
     pub right_drag_orbits: Option<bool>,
     pub bindings: &'static [NavBinding],
 }
@@ -106,6 +106,11 @@ impl NavPreset {
     /// What dragging `button` with `mods` held does, if anything.
     pub fn mode(&self, button: NavButton, mods: Modifiers) -> Option<NavMode> {
         self.bindings.iter().find(|b| b.button == button && b.keys.held(mods)).map(|b| b.mode)
+    }
+
+    /// Whether the mapping orbits on a right drag.
+    pub fn orbits_on_right_drag(&self) -> bool {
+        self.bindings.iter().any(|b| b.button == NavButton::Right && b.mode == NavMode::Orbit)
     }
 }
 
@@ -318,9 +323,10 @@ pub fn choose_nav_preset(prefs: &mut Prefs, preset: &NavPreset) {
     if let Some(double_click) = preset.middle_double_click {
         prefs.middle_double_click = double_click.into();
     }
-    if let Some(orbits) = preset.right_drag_orbits {
-        prefs.right_drag_orbits = orbits;
-    }
+    // "Right drag orbits" follows the mapping: a mapping that orbits on a right drag turns it
+    // on, so changing the mapping does not silently drop the gesture (#12425). A mapping that
+    // leaves the right button to the context menu says so itself (SolidWorks).
+    prefs.right_drag_orbits = preset.right_drag_orbits.unwrap_or_else(|| preset.orbits_on_right_drag());
 }
 /// Stable control-channel names; presentation labels may be shorter.
 pub const PAGES: &[&str] =
@@ -10139,6 +10145,22 @@ mod tests {
         assert_eq!(nav_mode(&app, NavButton::Right, none), Some(NavMode::Pan), "only an orbiting right drag is affected");
         set(&mut app, &json!({"right_drag_orbits": true, "nav": "solidworks"})).unwrap();
         assert_eq!(nav_mode(&app, NavButton::Right, none), Some(NavMode::Orbit), "turned back on, the right drag orbits again");
+    }
+
+    #[test]
+    fn changing_the_mouse_mapping_keeps_the_right_drag_orbit_the_new_mapping_promises() {
+        let none = Modifiers::default();
+        let mut app = SolveApp::new(solidcraft_engine::Session::default(), Default::default());
+        choose_nav_preset(&mut app.preferences, nav_preset("solidworks"));
+        assert!(!app.preferences.right_drag_orbits, "the SolidWorks mapping leaves the right button to the context menu");
+        choose_nav_preset(&mut app.preferences, nav_preset("fusion"));
+        assert!(app.preferences.right_drag_orbits, "the Fusion mapping orbits on a right drag (#12425)");
+        assert_eq!(nav_mode(&app, NavButton::Right, none), Some(NavMode::Orbit), "the right button orbits again");
+        let rows = navigation::mapping_rows(&app);
+        assert!(
+            rows.iter().any(|(keys, action)| keys.iter().any(|key| key == crate::i18n::tr("prefs.button_right")) && action == crate::i18n::tr("prefs.gesture_orbit")),
+            "the mapping table shows the right drag orbit: {rows:?}"
+        );
     }
 
     #[test]
