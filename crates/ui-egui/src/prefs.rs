@@ -324,9 +324,14 @@ pub fn choose_nav_preset(prefs: &mut Prefs, preset: &NavPreset) {
         prefs.middle_double_click = double_click.into();
     }
     // "Right drag orbits" follows the mapping: a mapping that orbits on a right drag turns it
-    // on, so changing the mapping does not silently drop the gesture (#12425). A mapping that
-    // leaves the right button to the context menu says so itself (SolidWorks).
-    prefs.right_drag_orbits = preset.right_drag_orbits.unwrap_or_else(|| preset.orbits_on_right_drag());
+    // on, so changing the mapping does not silently drop the gesture (#12425). SolidWorks and NX
+    // name the option off: they leave the right button to the context menu (#6492). A mapping
+    // that does not use the right button leaves the option as the user has it.
+    if let Some(orbits) = preset.right_drag_orbits {
+        prefs.right_drag_orbits = orbits;
+    } else if preset.orbits_on_right_drag() {
+        prefs.right_drag_orbits = true;
+    }
 }
 /// Stable control-channel names; presentation labels may be shorter.
 pub const PAGES: &[&str] =
