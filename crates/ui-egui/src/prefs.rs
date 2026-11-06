@@ -10158,7 +10158,8 @@ mod tests {
         assert_eq!(nav_mode(&app, NavButton::Right, none), Some(NavMode::Orbit), "the right button orbits again");
         let rows = navigation::mapping_rows(&app);
         assert!(
-            rows.iter().any(|(keys, action)| keys.iter().any(|key| key == crate::i18n::tr("prefs.button_right")) && action == crate::i18n::tr("prefs.gesture_orbit")),
+            rows.iter().any(|(keys, action)| keys.iter().any(|key| key == crate::i18n::tr("prefs.button_right"))
+                && action == crate::i18n::tr("prefs.gesture_orbit")),
             "the mapping table shows the right drag orbit: {rows:?}"
         );
     }
