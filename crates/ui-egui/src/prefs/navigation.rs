@@ -106,7 +106,7 @@ fn mouse(app: &mut SolveApp, ui: &mut egui::Ui, t: &Tokens) {
                 });
             });
         });
-        if nav_preset(&app.preferences.nav).bindings.iter().any(|b| b.button == NavButton::Right && b.mode == NavMode::Orbit) {
+        if nav_preset(&app.preferences.nav).orbits_on_right_drag() {
             let response = setting::right_drag_orbits(app, ui).backing_on_hover_text(crate::i18n::tr("nav.right_drag_orbits.help"));
             crate::scenario::publish_target("prefs:right_drag_orbits", response.rect);
         }
