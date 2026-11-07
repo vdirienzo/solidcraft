@@ -42,3 +42,34 @@ fn inspect_reports_the_same_unit_as_every_other_reply() {
         assert_eq!(param(&i, name)["display_value"], listed(&l, name)["display_value"], "{name}: {i} {l}");
     }
 }
+
+/// #10747: `display_value` is the number in the parameter's OWN unit, whatever the design's
+/// units are and whatever the kind of the value is: a length in centimetres in an inch design
+/// is millimetres in `value` and centimetres in `display_value`, an angle in radians is degrees
+/// in `value` and radians in `display_value`, and a unit-less number is the same in both.
+#[test]
+fn inspect_reports_the_display_value_in_the_parameters_own_unit() {
+    let mut s = Session::default();
+    run(&mut s, "document.units", json!({"units": "in"}));
+    run(&mut s, "parameters.add", json!({"name": "w", "expression": "2 cm", "unit": "cm"}));
+    run(&mut s, "parameters.add", json!({"name": "r", "expression": "0.5 rad", "unit": "rad"}));
+    run(&mut s, "parameters.add", json!({"name": "u", "expression": "3", "unit": ""}));
+    let i = run(&mut s, "document.inspect", json!({}));
+    // A length in centimetres: millimetres in `value`, centimetres in `display_value`.
+    assert_eq!(param(&i, "w")["value"], 20.0, "{i}");
+    assert_eq!(param(&i, "w")["display_value"], 2.0, "{i}");
+    assert_eq!(param(&i, "w")["unit"], "cm", "{i}");
+    // An angle in radians: degrees in `value` (like every other reply), radians in `display_value`.
+    assert_eq!(param(&i, "r")["value"], 28.6478897565, "{i}");
+    assert_eq!(param(&i, "r")["display_value"], 0.5, "{i}");
+    assert_eq!(param(&i, "r")["unit"], "rad", "{i}");
+    // A unit-less number: the same number in both.
+    assert_eq!(param(&i, "u")["value"], 3.0, "{i}");
+    assert_eq!(param(&i, "u")["display_value"], 3.0, "{i}");
+    // The same numbers as `parameters.list` reports, for every parameter of the design.
+    let l = run(&mut s, "parameters.list", json!({}));
+    for name in ["w", "r", "u"] {
+        assert_eq!(param(&i, name)["value"], listed(&l, name)["value"], "{name}: {i} {l}");
+        assert_eq!(param(&i, name)["display_value"], listed(&l, name)["display_value"], "{name}: {i} {l}");
+    }
+}

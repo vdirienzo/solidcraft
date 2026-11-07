@@ -383,7 +383,9 @@ fn inspect(s: &mut Session, p: &Value) -> Result<Value> {
             // `value` is millimetres (degrees for an angle) in every reply, with the
             // parameter's own unit in `display_value` (#10747).
             let value = vals.get(&p.name).map(|v| solidcraft_doc::expr::round_reported(solidcraft_doc::expr::reported_value(*v)));
-            let display_value = s.doc.param_display_value(&vals, &p.name).map(solidcraft_doc::expr::round_reported);
+            // The unit of the parameter in hand, not a lookup by name: that searched every
+            // parameter of the document again for each one of them (#10747).
+            let display_value = vals.get(&p.name).map(|v| solidcraft_doc::expr::round_reported(solidcraft_doc::expr::value_in_unit(*v, &p.unit)));
             json!({"name": p.name, "expression": p.expr, "unit": p.unit, "value": value, "display_value": display_value, "model": p.model, "comment": p.comment, "error": perr.get(&p.name)})
         })
         .collect();
