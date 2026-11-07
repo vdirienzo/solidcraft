@@ -895,3 +895,148 @@ fn activate_part_makes_the_sketch_in_the_faces_component() {
         assert!(s.model.result(id).unwrap().error.is_none());
     }
 }
+
+fn anchor_outcome(s: &Session, body: &solidcraft_doc::ModelBody, index: usize, plane: solidcore_record::Plane) -> String {
+    match s.doc.capture_face_anchor(body, index, &plane, &[], 0, &[]) {
+        Ok(_) => "ok".to_string(),
+        Err(error) => error.to_string(),
+    }
+}
+
+fn source_kind(body: &solidcraft_doc::ModelBody, index: usize) -> String {
+    match body.body.face_sources().and_then(|sources| sources.get(index)).and_then(Option::as_ref) {
+        None => "none".to_string(),
+        Some(solidcraft_kernel::FaceSource::ExtrudeSide { .. }) => "extrude-side".to_string(),
+        Some(solidcraft_kernel::FaceSource::CertifiedExtrudeSide { .. }) => "certified-side".to_string(),
+        Some(solidcraft_kernel::FaceSource::ExtrudeCap { .. }) => "extrude-cap".to_string(),
+        Some(solidcraft_kernel::FaceSource::CertifiedExtrudeCap { .. }) => "certified-cap".to_string(),
+        Some(solidcraft_kernel::FaceSource::Box { .. }) => "box".to_string(),
+        Some(solidcraft_kernel::FaceSource::CylinderCap { .. }) => "cylinder-cap".to_string(),
+        Some(solidcraft_kernel::FaceSource::ShellPlanar { .. }) => "shell".to_string(),
+        Some(solidcraft_kernel::FaceSource::Imported { .. }) => "imported".to_string(),
+    }
+}
+
+fn probe(s: &Session, label: &str) {
+    let state = s.model.state();
+    let names: Vec<String> = state.bodies.iter().map(|b| b.name.clone()).collect();
+    println!("--- {label}: bodies {names:?}");
+    for body in &state.bodies {
+        let count = body.body.face_count();
+        let bounds = body.mesh().bounds();
+        println!("   body {} faces {count} bounds {bounds:?}", body.name);
+        for index in 0..count {
+            let plane = body.body.planar_face(index);
+            let outcome = match plane {
+                None => "not planar".to_string(),
+                Some(plane) => {
+                    let mut outcome = anchor_outcome(s, body, index, plane);
+                    if outcome.starts_with("picked plane does not match") {
+                        let flipped = solidcore_record::Plane { origin: plane.origin, x: plane.x, y: -plane.y };
+                        outcome = anchor_outcome(s, body, index, flipped);
+                    }
+                    outcome
+                }
+            };
+            println!(
+                "      f{index} {:?} src {} exact {} planar {} -> {outcome}",
+                solidcraft_doc::naming::face_names(body).get(index).cloned().unwrap_or_default(),
+                source_kind(body, index),
+                solidcraft_doc::naming::face_name_exact(body, index),
+                plane.is_some(),
+            );
+        }
+    }
+}
+
+fn features_state(s: &Session) {
+    for (index, feature) in s.doc.features.iter().enumerate() {
+        let result = s.model.results.get(index).filter(|r| r.id == feature.id).or_else(|| s.model.result(feature.id));
+        println!("   feature {} {:?} -> {:?}", feature.id, feature.name, result.map(|r| (r.error.clone(), r.warning.clone())));
+    }
+}
+
+/// The minimal reproduction of #4325 (same refusal as #12568): a shelled and filleted box
+/// joined with a boss; the rim face can no longer keep an attachment.
+#[test]
+fn repro_4325_rim() {
+    // S1: the script from the issue comment, box centred on the origin.
+    let mut s = Session::default();
+    run(&mut s, "solid.box", json!({"length":40,"width":20,"height":20,"body_name":"Body1"}));
+    run(&mut s, "solid.shell", json!({"faces":[[20,10,20]],"thickness":1}));
+    run(&mut s, "solid.fillet", json!({"edges":[[20,1,1]],"radius":2}));
+    run(&mut s, "solid.cylinder", json!({"radius":3,"height":19,"base":[10,10,1],"operation":"new","body_name":"Boss"}));
+    run(&mut s, "solid.combine", json!({"target":"Body1","tools":["Boss"],"operation":"join"}));
+    probe(&s, "S1 after the join");
+    features_state(&s);
+
+    // S2: the same, with the box standing on the origin (the rim at z = 20).
+    let mut s = Session::default();
+    run(&mut s, "solid.box", json!({"length":40,"width":20,"height":20,"corner":[0,0,0],"body_name":"Body1"}));
+    run(&mut s, "solid.shell", json!({"faces":[[20,10,20]],"thickness":1}));
+    run(&mut s, "solid.fillet", json!({"edges":[[20,1,1]],"radius":2}));
+    run(&mut s, "solid.cylinder", json!({"radius":3,"height":19,"base":[10,10,1],"operation":"new","body_name":"Boss"}));
+    run(&mut s, "solid.combine", json!({"target":"Body1","tools":["Boss"],"operation":"join"}));
+    probe(&s, "S2 after the join");
+    features_state(&s);
+    let out = s.execute("sketch.create", &json!({"plane":{"face":[0.5,10,20]}}));
+    println!("   S2 sketch.create: {out:?}");
+}
+
+#[test]
+fn repro_12568() {
+    // A: a box with a boss joined on its top face.
+    let mut s = Session::default();
+    run(&mut s, "solid.box", json!({"length":20,"width":20,"height":10,"body_name":"Base","name":"BoxFeature"}));
+    let pick = top_pick(&s, "Base");
+    let s1 = run(&mut s, "sketch.create", json!({"name":"S1","plane":pick,"project_edges":false}))["sketch"].as_u64().unwrap();
+    draw(&mut s);
+    run(&mut s, "solid.extrude", json!({"sketch":s1,"distance":5,"operation":"join","targets":["Base"],"name":"Boss"}));
+    probe(&s, "A box+join");
+    features_state(&s);
+
+    // B: a second boss on the first one's top face.
+    let pick = top_pick(&s, "Base");
+    let s2 = run(&mut s, "sketch.create", json!({"name":"S2","plane":pick,"project_edges":false}))["sketch"].as_u64().unwrap();
+    draw(&mut s);
+    run(&mut s, "solid.extrude", json!({"sketch":s2,"distance":5,"operation":"join","targets":["Base"],"name":"Boss2"}));
+    probe(&s, "B two joins");
+    features_state(&s);
+
+    // C: undone and redone.
+    run(&mut s, "edit.undo", json!({}));
+    run(&mut s, "edit.redo", json!({}));
+    probe(&s, "C after undo+redo");
+    features_state(&s);
+
+    // D: the first sketch deleted.
+    let deleted = run(&mut s, "timeline.delete", json!({"features":[s1]}));
+    println!("   deleted: {deleted:?}");
+    probe(&s, "D after deleting the first sketch");
+    features_state(&s);
+
+    // E: two bodies made by extrudes, the second on the first one's face.
+    let mut s = Session::default();
+    run(&mut s, "solid.box", json!({"length":20,"width":20,"height":10,"body_name":"Base","name":"BoxFeature"}));
+    let pick = top_pick(&s, "Base");
+    let s1 = run(&mut s, "sketch.create", json!({"name":"S1","plane":pick,"project_edges":false}))["sketch"].as_u64().unwrap();
+    draw(&mut s);
+    run(&mut s, "solid.extrude", json!({"sketch":s1,"distance":5,"operation":"new","body_name":"Boss","name":"BossFeature"}));
+    probe(&s, "E1 box+new body");
+    features_state(&s);
+    let pick = top_pick(&s, "Boss");
+    let s2 = run(&mut s, "sketch.create", json!({"name":"S2","plane":pick,"project_edges":false}))["sketch"].as_u64().unwrap();
+    draw(&mut s);
+    run(&mut s, "solid.extrude", json!({"sketch":s2,"distance":5,"operation":"new","body_name":"Boss2","name":"Boss2Feature"}));
+    probe(&s, "E2 two new bodies");
+    features_state(&s);
+    run(&mut s, "edit.undo", json!({}));
+    run(&mut s, "edit.redo", json!({}));
+    probe(&s, "E3 after undo+redo");
+    features_state(&s);
+    let deleted = run(&mut s, "timeline.delete", json!({"features":[s1]}));
+    println!("   deleted: {deleted:?}");
+    probe(&s, "E4 after deleting the first sketch");
+    features_state(&s);
+    let _ = s2;
+}
