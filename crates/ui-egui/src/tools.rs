@@ -408,6 +408,7 @@ pub fn on_click(app: &mut SolveApp, proj: &Proj, pos: Pos2, shift: bool) {
                         Hit::SketchCurve { sketch, id, straight, .. } if Some(*sketch) == app.session.active_sketch => {
                             Some((id.clone(), true, *straight))
                         }
+                        Hit::Axis { name } => sketch_axis_of(app, name).map(|a| (a.to_string(), true, true)),
                         _ => None,
                     })
                 })
@@ -731,7 +732,7 @@ pub(crate) fn constraint_preselection(
         (unique.len() == ids.len()).then_some(ids)
     };
     match (command, selection) {
-        ("sketch.constraint.fix", _) => selected_ids(false, 1).map(|ids| json!({"entities":ids})),
+        ("sketch.constraint.fix", _) => fix_preselection(selection).map(|ids| json!({"entities":ids})),
         ("sketch.constraint.polygon", _) => selected_ids(true, 3).map(|ids| json!({"lines":ids})),
         // Three or more curves: all of them equal, in pick order (#4985). Two keep the `a, b` form.
         ("sketch.constraint.equal", _) if selection.len() >= 3 => selected_ids(true, 3).map(|ids| json!({"curves":ids})),
@@ -769,6 +770,30 @@ pub(crate) fn constraint_preselection(
         }
         _ => None,
     }
+}
+
+/// The sketch points and curves Fix takes from a selection (#11663). A box drawn over a sketch
+/// also takes its dimensions and constraint icons; those cannot be fixed and are passed over, so
+/// the geometry boxed with them is still fixed at once. Anything else selected (a body, a
+/// midpoint, a curve of another sketch) leaves the choice to the pick tool. As many entities as the command takes.
+fn fix_preselection(selection: &[solidcraft_engine::Sel]) -> Option<Vec<&str>> {
+    use solidcraft_engine::Sel::{SketchConstraint, SketchCurve, SketchPoint};
+    const MAX_ENTITIES: usize = 10_000;
+    let mut ids = Vec::new();
+    let mut seen = std::collections::BTreeSet::new();
+    for s in selection {
+        let id = match s {
+            SketchCurve { id, sketch: None } | SketchPoint { id } => id.as_str(),
+            // A curve of another sketch: its id alone would name a curve of this one (#3726).
+            SketchCurve { .. } => return None,
+            SketchConstraint { .. } => continue,
+            _ => return None,
+        };
+        if seen.insert(id) {
+            ids.push(id);
+        }
+    }
+    (1..=MAX_ENTITIES).contains(&ids.len()).then_some(ids)
 }
 
 pub(crate) fn projection_preselection(selection: &[solidcraft_engine::Sel]) -> Option<Vec<Value>> {
@@ -1178,14 +1203,17 @@ pub fn preview(app: &SolveApp, t: &Tool, painter: &egui::Painter, proj: &Proj) {
         if snap.as_deref() == Some("Midpoint") && t.kind == Kind::HorizontalVertical {
             painter.circle_stroke(sp, 8.0, Stroke::new(2.0, tk.accent));
         }
-        let readout = painter.text(
-            crate::tool_cursor::readout_at(painter, proj.rect, sp),
-            egui::Align2::LEFT_TOP,
-            format!("{}, {}", crate::prefs::show_mm(app, hp.x, 1), crate::prefs::show_mm(app, hp.y, 1)),
-            egui::FontId::proportional(crate::theme::Tokens::get().font_small),
-            tk.text_dim,
-        );
-        crate::scenario::publish_rect("viewport:readout", readout);
+        // The design's coordinates: not while a value is typed and the sketch is drawn at it.
+        if crate::dim_view::preview_world(app).is_none() {
+            let readout = painter.text(
+                crate::tool_cursor::readout_at(painter, proj.rect, sp),
+                egui::Align2::LEFT_TOP,
+                format!("{}, {}", crate::prefs::show_mm(app, hp.x, 1), crate::prefs::show_mm(app, hp.y, 1)),
+                egui::FontId::proportional(crate::theme::Tokens::get().font_small),
+                tk.text_dim,
+            );
+            crate::scenario::publish_rect("viewport:readout", readout);
+        }
     }
     if matches!(t.kind, Kind::HorizontalVertical | Kind::Dimension) {
         for target in &t.point_picks {
