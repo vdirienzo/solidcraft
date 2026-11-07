@@ -266,29 +266,137 @@ pub fn axis_aligned(a: Vec2, b: Vec2) -> Option<bool> {
     }
 }
 
-/// The Length and Angle boxes of a line from `a` to `e`: the length at the segment's middle,
-/// the angle along it, both a little off the line so they don't cover it.
-fn line_boxes(a: Vec2, e: Vec2, px: f64, off: f64) -> Vec<(f64, Vec2)> {
-    let v = e - a;
-    let d = dir_or_x(v);
-    let n = d.perp();
-    vec![(v.len(), (a + e) * 0.5 + n * off), (v.angle(), a + d * (v.len() * 0.3).min(60.0 * px) - n * off)]
+/// A value box of a line tool: the value it shows, and the line it measures.
+#[derive(Clone, Copy)]
+struct LineBox {
+    /// The value the box shows.
+    value: f64,
+    /// The measured line's ends, in the sketch's plane.
+    a: Vec2,
+    e: Vec2,
+    /// The box's anchor on the line, in the sketch's plane.
+    at: Vec2,
+    /// Which side of the line the box goes on: 1 for the plane normal's side, -1 for the other.
+    side: f64,
 }
 
-/// The value each box shows while it follows the cursor, and where it sits (sketch coordinates).
-/// `px` is the size of a screen pixel in sketch units: boxes sit a little off the segment they
-/// measure so they don't cover it.
-fn live(app: &SolveApp, t: &Tool, e: Vec2, px: f64) -> Vec<(f64, Vec2)> {
+/// The boxes of a line tool, in the order they show.
+///
+/// A box's place *on* the line is settled here, in the sketch's plane; the distance from
+/// the line is settled on screen, where the line's projected direction and the box's own
+/// size are known (see [`line_box_pos`]).
+fn line_boxes(t: &Tool, e: Vec2, px: f64) -> Option<Vec<LineBox>> {
+    let clicked = t.pts.last().map(|p| p.0)?;
+    // The measured segment: the clicked point to the end. A midpoint line runs from the
+    // end's mirror image through the midpoint to the end, so its length is the whole line.
+    let (a, e) = match (t.cmd, t.pts.len()) {
+        ("sketch.line.midpoint", 1) => (clicked * 2.0 - e, e),
+        ("sketch.construction_line.angle", 1) | ("sketch.line", _) | ("sketch.slot.center_to_center" | "sketch.slot.overall", 1) => (clicked, e),
+        _ => return None,
+    };
+    let v = e - a;
+    let d = dir_or_x(v);
+    // The length at the middle of the line, the angle along it; each on its own side of it.
+    let length = LineBox { value: v.len(), a, e, at: (a + e) * 0.5, side: 1.0 };
+    let angle = LineBox { value: v.angle(), a, e, at: a + d * (v.len() * 0.3).min(60.0 * px), side: -1.0 };
+    Some(match (t.cmd, t.pts.len()) {
+        // A construction line shows its angle first (#10258).
+        ("sketch.construction_line.angle", 1) => vec![angle, length],
+        // A slot's first stage shows only its length.
+        ("sketch.slot.center_to_center" | "sketch.slot.overall", 1) => vec![length],
+        _ => vec![length, angle],
+    })
+}
+
+/// Where a value box of a measured line goes on screen: beside the line, clear of it.
+///
+/// `a` and `e` are the measured line's ends on screen, `at` the point on the line the box
+/// belongs to, `normal` the screen direction of the line's own perpendicular, `size` the
+/// box's own size on screen and `side` which side of the line the box goes on (1 for the
+/// normal's side, -1 for the other).
+///
+/// The offset is perpendicular to the line *as it is drawn*, so it neither shrinks nor turns
+/// with the view, and the box keeps half its height clear of the line: it never covers the
+/// line it measures (#12482).
+pub(crate) fn line_box_pos(a: Pos2, e: Pos2, at: Pos2, normal: egui::Vec2, size: egui::Vec2, side: f32) -> Pos2 {
+    let dir = e - a;
+    let dir = if dir.length() < 1e-6 { egui::vec2(1.0, 0.0) } else { dir.normalized() };
+    // The line's normal on screen: the box goes beside it, never over it.
+    let mut across = dir.rot90();
+    // The line's own perpendicular says which of the two sides of the line the box is on.
+    if across.dot(normal) < 0.0 {
+        across = -across;
+    }
+    let n = across * side;
+    // How far the box reaches across the line: its own size, measured on the normal.
+    let reach = 0.5 * (size.x * n.x.abs() + size.y * n.y.abs());
+    // The box keeps half its height clear of the line.
+    let centre = at.to_vec2() + n * (reach + 0.5 * size.y);
+    (centre - size * 0.5).to_pos2()
+}
+
+/// Where a line's value boxes go on screen, beside the line they measure.
+///
+/// The line is projected first; the offset is then perpendicular to it *on screen*, so the
+/// box keeps its distance from the line whatever the view (#12482). The line's own
+/// perpendicular only says which side of the line the box belongs on.
+fn line_places(proj: &Proj, plane: &solidcore_record::Plane, boxes: &[LineBox], sizes: &[egui::Vec2], view: Option<egui::Rect>) -> Vec<Option<Pos2>> {
+    boxes
+        .iter()
+        .zip(sizes)
+        .map(|(b, &size)| {
+            let a = proj.to_screen(plane.to_world(b.a))?;
+            let e = proj.to_screen(plane.to_world(b.e))?;
+            let at = proj.to_screen(plane.to_world(b.at))?;
+            // The line's own perpendicular, on screen: which side of it the box goes on.
+            let v = b.e - b.a;
+            let probe = b.at + dir_or_x(v).perp() * v.len().max(1.0);
+            let normal = proj.to_screen(plane.to_world(probe))? - at;
+            let pos = line_box_pos(a, e, at, normal, size, b.side as f32);
+            Some(into_view(pos, size, view, a, e))
+        })
+        .collect()
+}
+
+/// A value box's size on screen: its text, the field's own margins and the frame's.
+fn box_size(ui: &egui::Ui, value: &str, tk: &Tokens, frame: &egui::Frame) -> egui::Vec2 {
+    crate::ui_kit::placement_field_content_size(ui, value) + vec2(2.0 * tk.form_inset, 0.0) + frame.total_margin().sum()
+}
+
+/// Keep a box inside the drawing area: pushed in when it does not fit.
+///
+/// A line's box is not mirrored through the pointer, as other boxes are: that would put it
+/// back over the line it measures (#12482). It is not pushed in either when that would put
+/// it over the line: it stays clear of the line it measures.
+fn into_view(pos: Pos2, size: egui::Vec2, view: Option<egui::Rect>, a: Pos2, e: Pos2) -> Pos2 {
+    let Some(view) = view else { return pos };
+    let max = (view.max - size).max(view.min);
+    let inside = pos.clamp(view.min, max);
+    if crate::selection::segment_hits_rect(a, e, egui::Rect::from_min_size(inside, size)) { pos } else { inside }
+}
+
+/// The value each box shows while it follows the cursor, and where it sits (sketch
+/// coordinates). `px` is the size of a screen pixel in sketch units: boxes sit a little off
+/// the segment they measure so they don't cover it.
+///
+/// A line's boxes are not here: they sit beside the line on screen, where the line's
+/// projected direction and the box's own size are known (see [`line_box_pos`]). `line` is
+/// the line tool's boxes, when the tool measures a line: their values, and the point on the
+/// line each belongs to.
+fn live(app: &SolveApp, t: &Tool, e: Vec2, px: f64, line: Option<&[LineBox]>) -> Vec<(f64, Vec2)> {
     let off = 20.0 * px;
     // A one-click construction line's Length box waits beside the pointer before any click.
     if t.pts.is_empty() && t.dims.first().is_some_and(|b| construction_length(t, b)) {
         return vec![(0.0, e + Vec2::new(2.5 * off, -1.5 * off))];
     }
+    // A line's boxes: the value, and the point on the line the box belongs to. How far from
+    // the line they sit is settled on screen (#12482).
+    if let Some(boxes) = line {
+        return boxes.iter().map(|b| (b.value, b.at)).collect();
+    }
     let Some(a) = t.pts.last().map(|p| p.0) else { return Vec::new() };
     let first = t.pts.first().map(|p| p.0).unwrap_or(a);
     match (t.cmd, t.pts.len()) {
-        // As for a line: the angle near the start, the length at the middle (#10258).
-        ("sketch.construction_line.angle", 1) => line_boxes(a, e, px, off).into_iter().rev().collect(),
         // Behind the start, away from the pointer: the next click, on the pointer's side, picks
         // the side the line runs to.
         (
@@ -298,10 +406,6 @@ fn live(app: &SolveApp, t: &Tool, e: Vec2, px: f64) -> Vec<(f64, Vec2)> {
             | "sketch.construction_line.perpendicular",
             1,
         ) => vec![(0.0, a - dir_or_x(e - a) * (2.5 * off))],
-        ("sketch.line", _) | ("sketch.slot.center_to_center" | "sketch.slot.overall", 1) => line_boxes(a, e, px, off),
-        // The midpoint line runs from the end's mirror image through the midpoint to the end,
-        // so its length is the whole line: twice the distance from the midpoint to the cursor.
-        ("sketch.line.midpoint", 1) => line_boxes(a * 2.0 - e, e, px, off),
         ("sketch.slot.center_point", 1) => vec![(2.0 * (e - a).len(), (a + e) * 0.5 + dir_or_x(e - a).perp() * off)],
         ("sketch.rectangle.two_point", 1) => {
             let (sx, sy) = (sign(e.x - a.x), sign(e.y - a.y));
@@ -579,7 +683,9 @@ fn boxes(app: &SolveApp, ui: &mut egui::Ui, proj: &Proj, t: &mut Tool) -> Option
     let hover = t.hover.clone().or_else(|| t.pts.last().map(|(p, id)| (*p + Vec2::X, id.clone())));
     let e = shown(app, t, hover.as_ref()?);
     let px = 2.0 * app.cam.half_height() / f64::from(proj.rect.height().max(1.0));
-    let lv = live(app, t, e, px);
+    // A line's boxes sit beside the line they measure, in screen space (#12482).
+    let line = line_boxes(t, e, px);
+    let lv = live(app, t, e, px, line.as_deref());
     let focus = std::mem::take(&mut t.dims_focus);
     // Egui processes ordinary Tab navigation before these floating text edits are drawn.
     // Remember the box that owned the keyboard and restore a focus within this tool after
@@ -615,6 +721,10 @@ fn boxes(app: &SolveApp, ui: &mut egui::Ui, proj: &Proj, t: &mut Tool) -> Option
             b.value = if construction && b.label == "Length" { INFINITE.to_owned() } else { fmt(app, b.label, b.kind, *v) };
         }
     }
+    // The boxes' sizes on screen: their text, the field's margins and the frame's.
+    let sizes: Vec<_> = t.dims.iter().map(|b| box_size(ui, &b.value, &tk, &field_frame)).collect();
+    // A line's boxes sit beside the line they measure, in screen space (#12482).
+    let line_positions = line.as_ref().map(|boxes| line_places(proj, &plane, boxes, &sizes, view));
     // Polygon values used to sit inside the radius, so both boxes covered a small polygon
     // and each other. Place them together outside its projected outline, in screen space:
     // their separation must not shrink with the shape or a tilted sketch plane.
@@ -623,11 +733,6 @@ fn boxes(app: &SolveApp, ui: &mut egui::Ui, proj: &Proj, t: &mut Tool) -> Option
             .unwrap_or_else(|| t.pts.iter().map(|p| p.0).chain(std::iter::once(e)).collect());
         let points: Vec<_> = corners.iter().filter_map(|p| proj.to_screen(plane.to_world(*p))).collect();
         let bounds = egui::Rect::from_points(&points);
-        let sizes: Vec<_> = t
-            .dims
-            .iter()
-            .map(|b| crate::ui_kit::placement_field_content_size(ui, &b.value) + vec2(2.0 * tk.form_inset, 0.0) + field_frame.total_margin().sum())
-            .collect();
         bounds.is_finite().then(|| polygon_input_positions(bounds, &sizes, view, tk.space_8))
     } else {
         None
@@ -644,9 +749,10 @@ fn boxes(app: &SolveApp, ui: &mut egui::Ui, proj: &Proj, t: &mut Tool) -> Option
             s.cursor.set_char_range(Some(egui::text_selection::CCursorRange::two(egui::text::CCursor::new(0), egui::text::CCursor::new(n))));
             s.store(ui.ctx(), id);
         }
-        let pos = polygon_positions
+        let pos = line_positions
             .as_ref()
-            .and_then(|positions| positions.get(i).copied())
+            .and_then(|positions| positions.get(i).copied().flatten())
+            .or_else(|| polygon_positions.as_ref().and_then(|positions| positions.get(i).copied()))
             .unwrap_or_else(|| in_view(sp + vec2(-34.0, -11.0), view, ui.ctx().pointer_latest_pos()));
         // Background: under Preferences and Report a bug (#9016), like canvas value boxes.
         Container::new(ui.ctx(), Surface::Canvas).area(egui::Id::unique(("sc_dim_area", i))).fixed_pos(pos).order(egui::Order::Background).show(

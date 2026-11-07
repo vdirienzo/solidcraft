@@ -661,6 +661,34 @@ fn polygon_inputs_clear_each_other_and_the_preview() {
     }
 }
 
+/// #12482: a line's value boxes must sit beside the line they measure, not over it. They used
+/// to be offset in the sketch's own plane, where the gap between the box and the line shrinks
+/// and turns with the view, so both boxes covered the line they measure.
+#[test]
+fn line_value_boxes_sit_beside_the_line_they_measure() {
+    for view in ["top", "iso"] {
+        let mut h = Harness::new();
+        h.app.run("sketch.create", json!({"plane": "XY"})).unwrap();
+        h.call("ui.view", json!({"view": view}));
+        h.step(&json!({"start": "sketch.line"})).unwrap();
+        h.step(&json!({"click": {"sketch": [0, 0]}})).unwrap();
+        h.step(&json!({"move": {"sketch": [20, 10]}, "alt": true})).unwrap();
+        h.frames(3);
+        let tool = h.app.tool.as_ref().unwrap();
+        let end = crate::sketch_dims::shown(&h.app, tool, tool.hover.as_ref().unwrap());
+        let state = crate::open_meshing::session_world(&h.app.session);
+        let plane = state.sketch(h.app.session.active_sketch.unwrap()).unwrap().plane;
+        let proj = crate::viewport::projection(&h.app, h.app.viewport.rect.unwrap());
+        // The line the boxes measure: from the point placed to the pointer.
+        let a = proj.to_screen(plane.to_world(tool.pts[0].0)).unwrap();
+        let b = proj.to_screen(plane.to_world(end)).unwrap();
+        for i in 0..2usize {
+            let rect = h.ctx.memory(|m| m.area_rect(egui::Id::unique(("sc_dim_area", i)))).unwrap_or_else(|| panic!("{view}: input {i} missing"));
+            assert!(!crate::selection::segment_hits_rect(a, b, rect), "{view}: input {i} {rect:?} covers the line {a:?}-{b:?}");
+        }
+    }
+}
+
 /// `name = expression` in a value box, as in the Dimension tool's: the shape takes the
 /// expression's size while it is typed and when placed, and the new parameter `name` drives its
 /// dimension (#7567).
