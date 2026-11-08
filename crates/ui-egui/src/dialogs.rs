@@ -874,6 +874,10 @@ impl Dialog {
     }
 
     pub fn for_command(app: &SolveApp, id: &str) -> Option<Dialog> {
+        // The preference in force decides what a new length field starts with (#12418): it is
+        // read here, where the dialog is built, so the dialog opens with the preference the
+        // user has now, not the one the thread was told last (#12574).
+        sync_scaled_length_defaults(app);
         let s = &app.session;
         let has_bodies = !crate::open_meshing::session_world(s).bodies.is_empty();
         let mut d = match id {
@@ -2330,6 +2334,12 @@ fn boxes_meet(a: &Aabb3, b: &Aabb3, pad: f64) -> bool {
         && b.min.y - pad <= a.max.y
         && a.min.z <= b.max.z + pad
         && b.min.z - pad <= a.max.z
+}
+
+/// The length defaults follow the preference that is in force, so a dialog opened in the
+/// same drain as the change opens with the value the user chose (#12418).
+pub(crate) fn sync_scaled_length_defaults(app: &SolveApp) {
+    crate::length_input::set_scaled_length_defaults(app.preferences.scaled_length_defaults);
 }
 
 #[cfg(test)]
@@ -6683,6 +6693,10 @@ fn pt_expr(p: &solidcraft_engine::doc::PointExpr) -> Value {
 /// A dialog that edits an existing feature, filled from it. The timeline is rolled back to just
 /// before the feature, so its references show on the geometry they refer to.
 pub fn for_feature(app: &SolveApp, id: u64, marker: Option<usize>) -> Option<Dialog> {
+    // The preference in force decides what a new length field starts with (#12418): it is read
+    // here, where the dialog is built, so the dialog opens with the preference the user has
+    // now, not the one the thread was told last (#12574).
+    sync_scaled_length_defaults(app);
     let _refill = Refill::start();
     let s = &app.session;
     let f = s.doc.feature(id)?.clone();

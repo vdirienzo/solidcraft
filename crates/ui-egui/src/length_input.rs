@@ -16,12 +16,18 @@ const CONVERSION_TOLERANCE: f64 = 0.02;
 /// The most digits a size written in another unit is given.
 const MAX_DIGITS: usize = 6;
 
+/// Whether a new length field starts with the size its tool ships with (#12418): the
+/// preference's default, and the value the flag below starts with, so the two cannot drift
+/// apart.
+pub(crate) const SCALED_LENGTH_DEFAULTS_DEFAULT: bool = true;
+
 thread_local! {
     /// Whether a new length field starts with the size its tool ships with (#12418). Off: it
     /// starts with the number the tool ships with, read in the design's units ("10 in" in an
-    /// inch design), the behaviour before #12418. The preference is handed to the thread that
-    /// draws the frame, which is the one that builds the dialogs.
-    static SCALED_LENGTH_DEFAULTS: Cell<bool> = const { Cell::new(true) };
+    /// inch design), the behaviour before #12418. The flag mirrors the preference: it is told
+    /// when the preference changes and again where a dialog is built, so a dialog never opens
+    /// with the value the thread was told last (#12574).
+    static SCALED_LENGTH_DEFAULTS: Cell<bool> = const { Cell::new(SCALED_LENGTH_DEFAULTS_DEFAULT) };
 }
 
 /// Take the preference from the preferences window (#12418).

@@ -1222,7 +1222,7 @@ preference_settings! {
     /// A new length field starts with the size its tool ships with, shown in the design's unit
     /// ("0.4 in" for an extrude of 10 mm in an inch design) (#12418). Off: the number the tool
     /// ships with is read in the design's unit ("10 in"), as before.
-    scaled_length_defaults: bool = true, PAGE_DESIGN => check_id_help("ui.scaled_length_defaults", "ui.scaled_length_defaults_help");
+    scaled_length_defaults: bool = crate::length_input::SCALED_LENGTH_DEFAULTS_DEFAULT, PAGE_DESIGN => check_id_help("ui.scaled_length_defaults", "ui.scaled_length_defaults_help");
     /// The most parameters Down arrow lists in an empty expression box (#9246): fewer keeps the
     /// list light in a large design.
     parameter_list_rows: u16 = 50, PAGE_DESIGN;

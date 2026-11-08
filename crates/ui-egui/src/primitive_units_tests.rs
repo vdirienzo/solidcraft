@@ -368,6 +368,34 @@ fn operation_length_defaults_follow_every_design_unit() {
     }
 }
 
+/// #12418: the preference decides what a new length field starts with, and the dialog reads
+/// the preference that is in force when it is built, not the one the thread was last told
+/// (#12574).
+#[test]
+fn operation_length_defaults_follow_the_preference_that_is_in_force() {
+    let mut h = design("in");
+    // The preference as it ships: a new length field starts with the size its tool ships
+    // with, shown in the design's unit.
+    assert!(crate::prefs::Prefs::default().scaled_length_defaults, "the preference ships on (#12418)");
+    assert_eq!(extrude_distance(&h), "0.4 in", "the size the tool ships with");
+    // The preference off, and the dialog opened right after, without a frame in between: the
+    // dialog opens with the preference that is in force now, not the one the thread was told
+    // last (#12574).
+    let (req, _rx) = crate::control::ControlRequest::new("ui.prefs", json!({ "scaled_length_defaults": false }));
+    crate::control::handle(&mut h.app, &h.ctx, &req);
+    assert_eq!(extrude_distance(&h), "10 in", "the number the tool ships with, read in the design's unit");
+    // The preference back on: the flag follows it, not the value it was told last.
+    let (req, _rx) = crate::control::ControlRequest::new("ui.prefs", json!({ "scaled_length_defaults": true }));
+    crate::control::handle(&mut h.app, &h.ctx, &req);
+    assert_eq!(extrude_distance(&h), "0.4 in", "the size the tool ships with, again");
+}
+
+/// The distance an Extrude dialog opens with.
+fn extrude_distance(h: &Harness) -> String {
+    let mut d = crate::dialogs::Dialog::for_command(&h.app, "solid.extrude").unwrap();
+    crate::length_input::fields(&h.app.session.doc, &mut d.kind)[0].clone()
+}
+
 /// The significant digits a number is written with: "0.035" has two, "0.1" one, "0" none.
 fn significant_digits(text: &str) -> usize {
     text.chars().filter(char::is_ascii_digit).skip_while(|c| *c == '0').count()
