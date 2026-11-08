@@ -17,7 +17,7 @@ fn error(h: &mut Harness, id: &str, params: Value) -> String {
 #[test]
 fn a_profile_holds_input_and_interface_settings_but_not_the_machine() {
     let keys: Vec<&str> = keys().collect();
-    assert_eq!(keys.len(), 103, "Appearance includes its two system-theme slots");
+    assert_eq!(keys.len(), 104, "Appearance includes its two system-theme slots");
     for key in [
         "nav",
         "mouse_gestures",
@@ -797,6 +797,7 @@ fn profile_keys_preserve_the_baseline_and_explicit_additions() {
         "history_sketches",
         "home_fit_size",
         "invert_navigator_arrows",
+        "keep_hover_while_navigating",
         "keep_work_on_tab_switch",
         "language",
         "layout",
@@ -881,7 +882,7 @@ fn profile_keys_preserve_the_baseline_and_explicit_additions() {
     ];
     let mut actual: Vec<_> = keys().collect();
     actual.sort_unstable();
-    assert_eq!(expected.len(), 103);
+    assert_eq!(expected.len(), 104);
     assert_eq!(actual, expected);
 }
 
