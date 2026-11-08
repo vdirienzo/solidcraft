@@ -1956,6 +1956,12 @@ fn polygon_edge(s: &mut Session, p: &Value) -> Result<Value> {
 }
 
 pub(super) fn slot(s: &mut Session, p: &Value, cmd: &str, c0: Vec2, c1: Vec2, w: f64) -> Result<Value> {
+    let (out, info) = slot_parts(s, p, cmd, c0, c1, w)?;
+    Ok(result(out, info))
+}
+
+/// What [`slot`] adds: the curve and constraint ids, and the sketch's solve.
+pub(super) fn slot_parts(s: &mut Session, p: &Value, cmd: &str, c0: Vec2, c1: Vec2, w: f64) -> Result<((Vec<String>, Vec<String>), Value)> {
     let h = w / 2.0;
     let d = (c1 - c0).normalized().ok_or_else(|| bad(cmd, "the slot ends must differ"))?;
     let n = d.perp();
@@ -1974,7 +1980,7 @@ pub(super) fn slot(s: &mut Session, p: &Value, cmd: &str, c0: Vec2, c1: Vec2, w:
         cons.push(add_c(sk, ConstraintKind::Equal { a: a0, b: a1 })?);
         Ok((ids_of(sk, &[l1, a1, l2, a0]), cons))
     })?;
-    Ok(result(out, info))
+    Ok((out, info))
 }
 
 fn slot_c2c(s: &mut Session, p: &Value) -> Result<Value> {
@@ -2064,8 +2070,7 @@ fn constrain_reply(s: &mut Session, p: &Value, cmd: &str, f: impl FnOnce(&mut Sk
     reply(cmd, ConstraintResult { made, param_warnings: Vec::new() })
 }
 
-/// The constraint a command added and, when the sketch already determined it, what determines it
-/// (see [`constraint_result`], which the other constraint commands build their reply with).
+/// The constraint a command added and, when the sketch already determined it, what determines it.
 fn constrained(p: &Value, cmd: &str, id: String, info: Value, by: Option<Vec<String>>) -> Result<Constrained> {
     let Some(by) = by else { return Ok(Constrained { constraint: id, sketch: info, redundant: None, determined_by: None }) };
     keep_redundant(p, cmd, &by)?;
@@ -2376,21 +2381,6 @@ pub(super) fn keep_redundant(p: &Value, cmd: &str, by: &[String]) -> Result<()> 
         return Err(bad(cmd, format!("that would over-constrain the sketch (it is already determined by {})", listed(by))));
     }
     Ok(())
-}
-
-/// The result of a constraint command: the constraint, and whether it is redundant (and what
-/// determines it).
-pub(super) fn constraint_result(p: &Value, cmd: &str, id: String, info: Value, by: Option<Vec<String>>, extra: Value) -> Result<Value> {
-    let mut out = json!({"constraint": id, "sketch": info});
-    if let Some(by) = by {
-        keep_redundant(p, cmd, &by)?;
-        out["redundant"] = json!(true);
-        out["determined_by"] = json!(by);
-    }
-    if let (Some(o), Value::Object(e)) = (out.as_object_mut(), extra) {
-        o.extend(e);
-    }
-    Ok(out)
 }
 
 /// The residual of the constraint `id` where the sketch is now (see
