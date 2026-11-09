@@ -745,8 +745,10 @@ pub(crate) fn handle(app: &mut SolveApp, ui: &mut egui::Ui, rect: Rect, resp: &e
                         && (crate::render_workspace::active(app) || (crate::dim_view::hit(p).is_none() && crate::sketch_tools::glyph_at(p).is_none()))
                 })
         };
-        let openscad_orbit =
-            app.preferences.nav == crate::prefs::OPENSCAD_NAV && app.tool.is_none() && app.dialog.is_none() && !mods.shift && empty_space(app);
+        // The OpenSCAD mapping owns the left button everywhere: a drag on empty space orbits even
+        // while a tool or a dialog is open, so the preset the user chose applies to every operation
+        // (#13966). Shift+left still box-selects and a press on geometry still edits it.
+        let openscad_orbit = app.preferences.nav == crate::prefs::OPENSCAD_NAV && !mods.shift && empty_space(app);
         let preset = if app.preferences.nav != crate::prefs::OPENSCAD_NAV || openscad_orbit {
             crate::prefs::nav_mode(app, crate::prefs::NavButton::Left, mods)
         } else {
@@ -1610,6 +1612,25 @@ mod tests {
         out.textures_delta.clear();
     }
 
+    /// One frame with these pointer events, over a viewport rect that fills the screen.
+    fn mouse_frame(app: &mut crate::SolveApp, ctx: &egui::Context, events: Vec<egui::Event>, time: &mut f64) {
+        *time += 1.0 / 60.0;
+        let raw = egui::RawInput {
+            screen_rect: Some(egui::Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(800.0, 600.0))),
+            time: Some(*time),
+            focused: true,
+            events,
+            ..Default::default()
+        };
+        let mut out = ctx.run_ui(raw, |ui| {
+            let rect = ui.max_rect();
+            app.viewport.rect = Some(rect);
+            let response = ui.interact(rect, ui.scope_id().with("mouse-frame"), egui::Sense::click_and_drag());
+            super::handle(app, ui, rect, &response, super::NavCaps::MODEL);
+        });
+        out.textures_delta.clear();
+    }
+
     #[test]
     fn touchpad_free_orbit_setting_reaches_the_shared_command() {
         use super::*;
@@ -1708,6 +1729,52 @@ mod tests {
         assert_eq!(app.session.doc.to_json(), design);
         assert_eq!(app.session.log.len(), log);
         assert!(app.session.undo.is_empty() && app.session.selection.is_empty());
+    }
+
+    /// The OpenSCAD mapping owns the left button in every operation: a drag on empty space orbits
+    /// while a tool or a dialog is open, so the preset the user chose applies to all of them
+    /// (#13966).
+    #[test]
+    fn openscad_left_drag_orbits_while_a_tool_or_a_dialog_is_open() {
+        use super::*;
+        for operation in ["tool", "dialog"] {
+            let ctx = egui::Context::default();
+            let mut app = crate::SolveApp::new(Default::default(), crate::Services::default());
+            app.preferences.nav = crate::prefs::OPENSCAD_NAV.into();
+            if operation == "tool" {
+                app.tool = crate::tools::Tool::for_command("sketch.line");
+            } else {
+                app.dialog = crate::dialogs::Dialog::for_command(&app, "solid.extrude");
+            }
+            assert!(app.tool.is_some() || app.dialog.is_some(), "{operation}: the operation is open");
+            let before = app.cam;
+            let mut time = 0.0;
+            let start = pos2(200.0, 300.0);
+            let end = pos2(280.0, 380.0);
+            mouse_frame(&mut app, &ctx, vec![egui::Event::PointerMoved(start)], &mut time);
+            mouse_frame(
+                &mut app,
+                &ctx,
+                vec![egui::Event::PointerButton {
+                    pos: start,
+                    button: egui::PointerButton::Primary,
+                    pressed: true,
+                    modifiers: egui::Modifiers::NONE,
+                }],
+                &mut time,
+            );
+            mouse_frame(&mut app, &ctx, vec![egui::Event::PointerMoved(end)], &mut time);
+            assert_eq!(app.viewport.primary_nav, Some(NavMode::Orbit), "{operation}: the left drag orbits");
+            assert_ne!(app.cam, before, "{operation}: the left drag turns the view");
+            mouse_frame(
+                &mut app,
+                &ctx,
+                vec![egui::Event::PointerButton { pos: end, button: egui::PointerButton::Primary, pressed: false, modifiers: egui::Modifiers::NONE }],
+                &mut time,
+            );
+            assert!(app.tool.is_some() || app.dialog.is_some(), "{operation}: the operation stays open");
+            assert!(app.session.undo.is_empty(), "{operation}: the orbit adds no geometry");
+        }
     }
 
     #[test]
