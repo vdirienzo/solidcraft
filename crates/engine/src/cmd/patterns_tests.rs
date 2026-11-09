@@ -1073,6 +1073,24 @@ fn pattern_count_units_explain_how_to_use_a_parameter() -> Result<(), Box<dyn st
     Ok(())
 }
 
+/// #14050: a pattern of a hole at sketch points cuts every copy.
+#[test]
+fn tmp_repro_pattern_of_a_sketch_point_hole() {
+    let mut s = Session::default();
+    run(&mut s, "solid.box", json!({"length":90,"width":60,"height":10,"center":[0,0,5],"name":"Box"}));
+    run(&mut s, "sketch.create", json!({"plane":"XY","name":"VP","offset":-1}));
+    run(&mut s, "sketch.point", json!({"point":[-20,-10],"id":"p1"}));
+    run(&mut s, "sketch.finish", json!({}));
+    run(&mut s, "solid.hole", json!({"sketch":"VP","points":["p1"],"diameter":6,"depth":12,"name":"H1"}));
+    let v1 = volume(&mut s);
+    println!("after one hole: {v1}");
+    run(&mut s, "solid.pattern.rectangular", json!({"features":["H1"],"dir1":[1,0,0],"count1":3,"spacing1":20,"dir2":[0,1,0],"count2":2,"spacing2":20,"name":"Pat"}));
+    let v2 = volume(&mut s);
+    println!("after pattern: {v2}");
+    let one = PI * 9.0 * 10.0;
+    println!("analytic one hole: {one}, expected six: {}", 54000.0 - 6.0 * one);
+}
+
 /// #9015: in an inch design, pattern spacing `baseLength - 1` subtracts one inch, not one mm.
 #[test]
 fn pattern_spacing_bare_offsets_follow_design_units() {
