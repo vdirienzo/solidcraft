@@ -1,0 +1,69 @@
+{
+  "offset_app_menos_video": 15.86,
+  "agreement": 0.9967,
+  "app_edges": [
+    {
+      "t": 19.071,
+      "from": false,
+      "to": true
+    },
+    {
+      "t": 21.86,
+      "from": true,
+      "to": false
+    },
+    {
+      "t": 24.823,
+      "from": false,
+      "to": true
+    }
+  ],
+  "video_edges_matched": [
+    {
+      "video_t": 2.2,
+      "video": "OFF->ON",
+      "app_t": 18.06,
+      "app": "OFF->ON",
+      "app_edge_t": 19.07,
+      "delta_s": 1.01
+    },
+    {
+      "video_t": 5.76,
+      "video": "ON->OFF",
+      "app_t": 21.62,
+      "app": "ON->OFF",
+      "app_edge_t": 21.86,
+      "delta_s": 0.24
+    },
+    {
+      "video_t": 8.2,
+      "video": "OFF->ON",
+      "app_t": 24.06,
+      "app": "OFF->ON",
+      "app_edge_t": 24.82,
+      "delta_s": 0.76
+    }
+  ],
+  "face_patch_video_px": [
+    688,
+    193
+  ],
+  "patch_min": 131.9,
+  "patch_max": 181.3,
+  "tramos_medidos": [
+    {
+      "estado": "ON",
+      "desde_frame": 55,
+      "hasta_frame": 143,
+      "desde_t": 2.2,
+      "hasta_t": 5.72
+    },
+    {
+      "estado": "ON",
+      "desde_frame": 205,
+      "hasta_frame": 600,
+      "desde_t": 8.2,
+      "hasta_t": 24.0
+    }
+  ]
+}

@@ -1,0 +1,423 @@
+{
+  "app_build": "slot-2130 ci profile, PR head 4c32a418f3de939cf521c646081e582f8486b662",
+  "display": ":99 (Xvfb 1600x1000x24), renderer software (lavapipe)",
+  "input": "X11 real: XWarpPointer + XTestFakeButtonEvent + XTestFakeMotionEvent",
+  "viewport": [
+    0.0,
+    34.0,
+    1600.0,
+    966.0
+  ],
+  "face_screen": [
+    860,
+    242
+  ],
+  "events": [
+    {
+      "name": "pointer away from the model",
+      "script_t": 15.852,
+      "hover": null
+    },
+    {
+      "name": "pointer over the top face",
+      "script_t": 19.071,
+      "hover": {
+        "body": "Body1",
+        "index": 0,
+        "point": [
+          19.827068955005643,
+          310.8908987422394,
+          199.99999999999977
+        ],
+        "type": "face"
+      }
+    },
+    {
+      "name": "mouse wheel: the view moves under a still pointer",
+      "script_t": 20.134,
+      "hover": {
+        "body": "Body1",
+        "index": 0,
+        "point": [
+          19.82706895500587,
+          310.8908987422392,
+          200.00000000000023
+        ],
+        "type": "face"
+      }
+    },
+    {
+      "name": "two-finger trackpad gesture: the view moves under a still pointer",
+      "script_t": 21.412,
+      "hover": {
+        "body": "Body1",
+        "index": 0,
+        "point": [
+          19.827068955005643,
+          310.8908987422393,
+          200.0
+        ],
+        "type": "face"
+      }
+    },
+    {
+      "name": "hover before the drag",
+      "script_t": 21.477,
+      "hover": {
+        "body": "Body1",
+        "index": 0,
+        "point": [
+          19.827068955005643,
+          310.8908987422393,
+          200.0
+        ],
+        "type": "face"
+      }
+    },
+    {
+      "name": "during the mouse drag",
+      "script_t": 23.816,
+      "hover": null
+    },
+    {
+      "name": "on release the hover is picked again",
+      "script_t": 24.823,
+      "hover": {
+        "body": "Body1",
+        "index": 0,
+        "point": [
+          19.827068955005643,
+          310.8908987422393,
+          200.0
+        ],
+        "type": "face"
+      }
+    }
+  ],
+  "hover_during_mouse_wheel": {
+    "body": "Body1",
+    "index": 0,
+    "point": [
+      19.82706895500587,
+      310.8908987422392,
+      200.00000000000023
+    ],
+    "type": "face"
+  },
+  "camera_before_wheel": {
+    "distance": 839.0805289108332,
+    "fov": 0.0,
+    "pitch": 0.6154797086703874,
+    "roll": 0.0,
+    "target": [
+      132.0474807410671,
+      139.7070552091522,
+      107.65957446808511
+    ],
+    "up": "z",
+    "yaw": -0.7853981633974483
+  },
+  "camera_after_wheel": {
+    "distance": 660.0441198313197,
+    "fov": 0.0,
+    "pitch": 0.6154797086703874,
+    "roll": 0.0,
+    "target": [
+      108.10277119372424,
+      176.23291843991498,
+      127.36244878167214
+    ],
+    "up": "z",
+    "yaw": -0.7853981633974483
+  },
+  "hover_during_trackpad_pinch": {
+    "body": "Body1",
+    "index": 0,
+    "point": [
+      19.827068955005643,
+      310.8908987422393,
+      200.0
+    ],
+    "type": "face"
+  },
+  "camera_before_pinch": {
+    "distance": 660.0441198313197,
+    "fov": 0.0,
+    "pitch": 0.6154797086703874,
+    "roll": 0.0,
+    "target": [
+      108.10277119372424,
+      176.23291843991498,
+      127.36244878167214
+    ],
+    "up": "z",
+    "yaw": -0.7853981633974483
+  },
+  "camera_after_pinch": {
+    "distance": 519.2090947495179,
+    "fov": 0.0,
+    "pitch": 0.6154797086703874,
+    "roll": 0.0,
+    "target": [
+      89.26719586569804,
+      204.96517960783382,
+      142.86127839071136
+    ],
+    "up": "z",
+    "yaw": -0.7853981633974483
+  },
+  "hover_during_mouse_drag": null,
+  "hover_during_mouse_drag_samples": [
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null,
+    null
+  ],
+  "hover_after_mouse_drag": {
+    "body": "Body1",
+    "index": 0,
+    "point": [
+      19.827068955005643,
+      310.8908987422393,
+      200.0
+    ],
+    "type": "face"
+  },
+  "hover_away": null,
+  "hover_on_face": {
+    "body": "Body1",
+    "index": 0,
+    "point": [
+      19.827068955005643,
+      310.8908987422394,
+      199.99999999999977
+    ],
+    "type": "face"
+  },
+  "hover_track": [
+    {
+      "t": 15.852,
+      "label": "away",
+      "hover": null
+    },
+    {
+      "t": 17.863,
+      "label": "recording-started",
+      "hover": null
+    },
+    {
+      "t": 19.071,
+      "label": "on-face",
+      "hover": {
+        "body": "Body1",
+        "index": 0,
+        "point": [
+          19.827068955005643,
+          310.8908987422394,
+          199.99999999999977
+        ],
+        "type": "face"
+      }
+    },
+    {
+      "t": 19.305,
+      "label": "wheel-step",
+      "hover": {
+        "body": "Body1",
+        "index": 0,
+        "point": [
+          19.827068955005643,
+          310.8908987422394,
+          199.99999999999977
+        ],
+        "type": "face"
+      }
+    },
+    {
+      "t": 19.521,
+      "label": "wheel-step",
+      "hover": {
+        "body": "Body1",
+        "index": 0,
+        "point": [
+          19.827068955005643,
+          310.8908987422394,
+          199.99999999999977
+        ],
+        "type": "face"
+      }
+    },
+    {
+      "t": 20.134,
+      "label": "wheel",
+      "hover": {
+        "body": "Body1",
+        "index": 0,
+        "point": [
+          19.82706895500587,
+          310.8908987422392,
+          200.00000000000023
+        ],
+        "type": "face"
+      }
+    },
+    {
+      "t": 20.46,
+      "label": "trackpad-step",
+      "hover": {
+        "body": "Body1",
+        "index": 0,
+        "point": [
+          19.82706895500587,
+          310.8908987422392,
+          200.00000000000023
+        ],
+        "type": "face"
+      }
+    },
+    {
+      "t": 20.799,
+      "label": "trackpad-step",
+      "hover": {
+        "body": "Body1",
+        "index": 0,
+        "point": [
+          19.82706895500587,
+          310.8908987422392,
+          200.00000000000023
+        ],
+        "type": "face"
+      }
+    },
+    {
+      "t": 21.412,
+      "label": "trackpad",
+      "hover": {
+        "body": "Body1",
+        "index": 0,
+        "point": [
+          19.827068955005643,
+          310.8908987422393,
+          200.0
+        ],
+        "type": "face"
+      }
+    },
+    {
+      "t": 21.477,
+      "label": "before-drag",
+      "hover": {
+        "body": "Body1",
+        "index": 0,
+        "point": [
+          19.827068955005643,
+          310.8908987422393,
+          200.0
+        ],
+        "type": "face"
+      }
+    },
+    {
+      "t": 21.86,
+      "label": "drag",
+      "hover": null
+    },
+    {
+      "t": 21.995,
+      "label": "drag",
+      "hover": null
+    },
+    {
+      "t": 22.144,
+      "label": "drag",
+      "hover": null
+    },
+    {
+      "t": 22.283,
+      "label": "drag",
+      "hover": null
+    },
+    {
+      "t": 22.354,
+      "label": "drag",
+      "hover": null
+    },
+    {
+      "t": 22.537,
+      "label": "drag",
+      "hover": null
+    },
+    {
+      "t": 22.661,
+      "label": "drag",
+      "hover": null
+    },
+    {
+      "t": 22.79,
+      "label": "drag",
+      "hover": null
+    },
+    {
+      "t": 22.885,
+      "label": "drag",
+      "hover": null
+    },
+    {
+      "t": 22.99,
+      "label": "drag",
+      "hover": null
+    },
+    {
+      "t": 23.078,
+      "label": "drag",
+      "hover": null
+    },
+    {
+      "t": 23.184,
+      "label": "drag",
+      "hover": null
+    },
+    {
+      "t": 23.309,
+      "label": "drag",
+      "hover": null
+    },
+    {
+      "t": 23.5,
+      "label": "drag",
+      "hover": null
+    },
+    {
+      "t": 23.816,
+      "label": "drag",
+      "hover": null
+    },
+    {
+      "t": 24.823,
+      "label": "after-drag",
+      "hover": {
+        "body": "Body1",
+        "index": 0,
+        "point": [
+          19.827068955005643,
+          310.8908987422393,
+          200.0
+        ],
+        "type": "face"
+      }
+    }
+  ],
+  "recorder_spawned_at": 15.852,
+  "captured_at": "2026-11-09T04:16:24+0100"
+}
