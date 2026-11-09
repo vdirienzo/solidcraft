@@ -9908,19 +9908,26 @@ mod tests {
             );
             frame(&mut app, vec![egui::Event::PointerMoved(end)]);
             frame(&mut app, vec![]);
-            assert_eq!(app.cam, before, "{action} drag must not orbit");
             if action == "point" {
+                assert_eq!(app.cam, before, "a drag on geometry must not orbit");
                 assert!(app.viewport.point_drag.is_some());
                 assert_eq!(app.session.undo.len(), undo + 1);
             } else if action == "box" {
+                assert_eq!(app.cam, before, "a Shift+left drag must not orbit");
                 assert!(app.viewport.boxsel.is_some());
             } else {
+                // The OpenSCAD mapping owns the left button: with a tool open, a drag on empty
+                // space orbits instead of running the tool's gesture (#13966).
+                assert_ne!(app.cam, before, "the OpenSCAD mapping orbits while a tool is open");
                 assert!(app.tool.is_some());
-                assert!(app.viewport.primary_nav.is_none());
+                assert_eq!(app.viewport.primary_nav, Some(NavMode::Orbit));
+                assert_eq!(app.session.undo.len(), undo, "the orbit drag adds no geometry");
             }
             frame(&mut app, vec![egui::Event::PointerButton { pos: end, button: egui::PointerButton::Primary, pressed: false, modifiers }]);
             if action == "box" {
                 assert!(!app.session.selection.is_empty());
+            } else if action == "tool" {
+                assert_eq!(app.session.undo.len(), undo, "releasing the orbit drag adds no geometry");
             }
         }
     }
