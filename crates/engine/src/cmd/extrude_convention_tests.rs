@@ -261,10 +261,8 @@ fn an_older_two_sided_extrude_with_a_negative_distance_keeps_its_sides() {
     let mut base = fixture(json!({"direction":"positive","distance":"10 mm","distance2":"10 mm"}));
     run(&mut base, "parameters.add", json!({"name":"width","expression":"20 mm"}));
     let mut saved: Value = serde_json::from_str(&base.doc.to_json()).unwrap();
-    // As a design saved before the two-sided extrude change: the file says the format before
-    // it (51), so opening it applies that change's step and the old reading of the two sides
-    // is kept. The number is fixed, not relative to this build's format: a format belongs to
-    // the change that made it, so a later change does not move it.
+    // Format 50 predates the v51 second-side migration. A moving current-1 tag
+    // can already include that migration after unrelated format changes.
     saved["format"] = json!("solidcraft/50");
     saved.as_object_mut().unwrap().remove("format_pending");
     for (distance, lo, hi) in [("-width", -20.0, 10.0), ("-0 mm", -10.0, 0.0), ("-10 mm", -10.0, 10.0)] {
