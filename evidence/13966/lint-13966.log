@@ -1,0 +1,9 @@
+===== cargo fmt --all -- --check =====
+FMT_EXIT=0
+===== cargo clippy -D warnings -p solidcraft-ui-egui =====
+[1m[91merror:[0m unexpected argument '[1m[33m-D[0m' found
+
+[1m[92mUsage:[0m [1m[96mcargo check[0m [36m[OPTIONS][0m
+
+For more information, try '[1m[96m--help[0m'.
+CLIPPY_EXIT=1

@@ -1,0 +1,9 @@
+GATE_STATUS=finished
+SCOPE=solidcraft solidcraft-ui-egui solidcraft-web solidcraft-cli
+SCOPE_KIND=packages
+VERDICT=VERDE-SCOPE
+NEW_FAILURES=0
+FAILED_TESTS=
+CHECKS=fmt:ok|layers:ok|clippy:ok|check:ok
+SHA=d02b358120de07244a81feeba0b41156a5b998dc
+AT=1794204449

@@ -1,0 +1,151 @@
+[1m[33mwarning[0m[1m: use of deprecated method `std::sync::atomic::Atomic::<u64>::fetch_update`: renamed to `try_update` for consistency[0m
+   [1m[94m--> [0msolidcore/crates/solidcore/src/geom/context.rs:417:14
+    [1m[94m|[0m
+[1m[94m417[0m [1m[94m|[0m             .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |issued| {
+    [1m[94m|[0m              [1m[33m^^^^^^^^^^^^[0m
+    [1m[94m|[0m
+    [1m[94m= [0m[1mnote[0m: `#[warn(deprecated)]` on by default
+[1m[96mhelp[0m: replace the use of the deprecated method
+    [1m[94m|[0m
+[1m[94m417[0m [91m- [0m            .[91mfetch_update[0m(Ordering::Relaxed, Ordering::Relaxed, |issued| {
+[1m[94m417[0m [92m+ [0m            .[92mtry_update[0m(Ordering::Relaxed, Ordering::Relaxed, |issued| {
+    [1m[94m|[0m
+
+[1m[33mwarning[0m: `solidcore` (lib) generated 1 warning (run `cargo fix --lib -p solidcore` to apply 1 suggestion)
+sccache: warning: The server looks like it shut down unexpectedly, compiling locally instead
+sccache: warning: The server looks like it shut down unexpectedly, compiling locally instead
+[1m[92m    Finished[0m `test` profile [unoptimized + debuginfo] target(s) in 1.18s
+[1m[92m     Running[0m unittests src/lib.rs (/home/user/.local/share/solidcraft-orch/targets/slot-13966/debug/deps/solidcraft_ui_egui-0f47cd0a85d4eff4)
+
+running 1 test
+test viewport::tests::openscad_left_drag_preserves_editing_and_selection ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 5237 filtered out; finished in 0.24s
+
+[1m[92m     Running[0m tests/assistant_render.rs (/home/user/.local/share/solidcraft-orch/targets/slot-13966/debug/deps/assistant_render-a80cbe5619d61ac4)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+[1m[92m     Running[0m tests/coincident_circles.rs (/home/user/.local/share/solidcraft-orch/targets/slot-13966/debug/deps/coincident_circles-ce85c4ff2b131fdf)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+[1m[92m     Running[0m tests/coincident_lines.rs (/home/user/.local/share/solidcraft-orch/targets/slot-13966/debug/deps/coincident_lines-bd70b4d0ec6ec684)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s
+
+[1m[92m     Running[0m tests/constraint_preselection.rs (/home/user/.local/share/solidcraft-orch/targets/slot-13966/debug/deps/constraint_preselection-69eafbc552984517)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 0.00s
+
+[1m[92m     Running[0m tests/dialog_chip_hover.rs (/home/user/.local/share/solidcraft-orch/targets/slot-13966/debug/deps/dialog_chip_hover-7250d99dcbe4b96c)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+[1m[92m     Running[0m tests/disclosure_render.rs (/home/user/.local/share/solidcraft-orch/targets/slot-13966/debug/deps/disclosure_render-42dc22b81fc250c1)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s
+
+[1m[92m     Running[0m tests/icon_audit.rs (/home/user/.local/share/solidcraft-orch/targets/slot-13966/debug/deps/icon_audit-bb373856faff8214)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+
+[1m[92m     Running[0m tests/joint_move_render.rs (/home/user/.local/share/solidcraft-orch/targets/slot-13966/debug/deps/joint_move_render-76d47d9e64bb315b)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s
+
+[1m[92m     Running[0m tests/orbit_empty_space_pivot.rs (/home/user/.local/share/solidcraft-orch/targets/slot-13966/debug/deps/orbit_empty_space_pivot-6a652429a0c7cf65)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+[1m[92m     Running[0m tests/parameter_enter.rs (/home/user/.local/share/solidcraft-orch/targets/slot-13966/debug/deps/parameter_enter-694e05849d51a058)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.00s
+
+[1m[92m     Running[0m tests/parameter_order.rs (/home/user/.local/share/solidcraft-orch/targets/slot-13966/debug/deps/parameter_order-b7c82c1c3a6af352)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+[1m[92m     Running[0m tests/point_alignment.rs (/home/user/.local/share/solidcraft-orch/targets/slot-13966/debug/deps/point_alignment-0103bc7745a01c77)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 19 filtered out; finished in 0.00s
+
+[1m[92m     Running[0m tests/point_constraint_preselection.rs (/home/user/.local/share/solidcraft-orch/targets/slot-13966/debug/deps/point_constraint_preselection-20645a37b8f8b286)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.00s
+
+[1m[92m     Running[0m tests/popup_owner_capture.rs (/home/user/.local/share/solidcraft-orch/targets/slot-13966/debug/deps/popup_owner_capture-a4a91f8a313a13d1)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+[1m[92m     Running[0m tests/popup_regressions.rs (/home/user/.local/share/solidcraft-orch/targets/slot-13966/debug/deps/popup_regressions-d8d4eae4d61da906)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s
+
+[1m[92m     Running[0m tests/projection_preselection.rs (/home/user/.local/share/solidcraft-orch/targets/slot-13966/debug/deps/projection_preselection-266af8e018a90bc0)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 8 filtered out; finished in 0.00s
+
+[1m[92m     Running[0m tests/scenarios.rs (/home/user/.local/share/solidcraft-orch/targets/slot-13966/debug/deps/scenarios-aa1fdc1c8f450b54)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 157 filtered out; finished in 0.00s
+
+[1m[92m     Running[0m tests/stand_up_offer.rs (/home/user/.local/share/solidcraft-orch/targets/slot-13966/debug/deps/stand_up_offer-3685975c801516cf)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 22 filtered out; finished in 0.00s
+
+[1m[92m     Running[0m tests/ui_layout.rs (/home/user/.local/share/solidcraft-orch/targets/slot-13966/debug/deps/ui_layout-a7b4cf444a3774f9)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.00s
+
+[1m[92m     Running[0m tests/window_widths.rs (/home/user/.local/share/solidcraft-orch/targets/slot-13966/debug/deps/window_widths-172c433b7df22759)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+
+[1m[92m     Running[0m tests/woken_centre.rs (/home/user/.local/share/solidcraft-orch/targets/slot-13966/debug/deps/woken_centre-243339c1fd113ec5)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s
+
+CARGO_EXIT=0

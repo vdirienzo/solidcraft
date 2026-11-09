@@ -1,0 +1,255 @@
+[1m[92m    Checking[0m cfg-if v1.0.5
+[1m[92m    Checking[0m thiserror v2.0.21
+[1m[92m    Checking[0m libm v0.2.16
+[1m[92m    Checking[0m serde_core v1.0.229
+[1m[92m    Checking[0m log v0.4.34
+[1m[92m    Checking[0m memchr v2.8.3
+[1m[92m    Checking[0m bitflags v2.13.2
+[1m[92m    Checking[0m foldhash v0.2.0
+[1m[92m    Checking[0m bytemuck v1.25.2
+[1m[92m    Checking[0m libc v0.2.190
+[1m[92m    Checking[0m num-traits v0.2.19
+[1m[92m    Checking[0m typenum v1.20.1
+[1m[92m    Checking[0m itoa v1.0.18
+[1m[92m    Checking[0m serde v1.0.229
+[1m[92m    Checking[0m hashbrown v0.17.1
+[1m[92m    Checking[0m zmij v1.0.23
+[1m[92m    Checking[0m equivalent v1.0.2
+[1m[92m    Checking[0m once_cell v1.21.4
+[1m[92m    Checking[0m smallvec v1.16.2
+[1m[92m    Checking[0m serde_json v1.0.151
+[1m[92m    Checking[0m simd-adler32 v0.3.10
+[1m[92m    Checking[0m zerocopy v0.8.61
+[1m[92m    Checking[0m adler2 v2.0.1
+[1m[92m    Checking[0m crc32fast v1.5.2
+[1m[92m    Checking[0m scopeguard v1.2.0
+[1m[92m    Checking[0m miniz_oxide v0.9.1
+[1m[92m    Checking[0m indexmap v2.14.2
+[1m[92m    Checking[0m hybrid-array v0.4.15
+[1m[92m    Checking[0m zlib-rs v0.6.8
+[1m[92m    Checking[0m arrayvec v0.7.8
+[1m[92m    Checking[0m crypto-common v0.2.2
+[1m[92m    Checking[0m parking_lot_core v0.9.12
+[1m[92m    Checking[0m lock_api v0.4.14
+[1m[92m    Checking[0m font-types v0.12.6
+[1m[92m    Checking[0m flate2 v1.1.10
+[1m[92m    Checking[0m allocator-api2 v0.2.21
+[1m[92m    Checking[0m cpufeatures v0.3.1
+[1m[92m    Checking[0m rand_core v0.10.1
+[1m[92m    Checking[0m hashbrown v0.16.1
+[1m[92m    Checking[0m read-fonts v0.41.0
+[1m[92m    Checking[0m parking_lot v0.12.5
+[1m[92m    Checking[0m block-buffer v0.12.1
+[1m[92m    Checking[0m const-oid v0.10.2
+[1m[92m    Checking[0m half v2.7.1
+[1m[92m    Checking[0m getrandom v0.4.3
+[1m[92m    Checking[0m digest v0.11.3
+[1m[92m    Checking[0m libloading v0.8.9
+[1m[92m    Checking[0m profiling v1.0.18
+[1m[92m    Checking[0m unicode-ident v1.0.26
+[1m[92m    Checking[0m polycool v0.4.0
+[1m[92m    Checking[0m solidcore-record v0.1.0 (/home/user/solidcraft-wt/issue-13966/solidcore/crates/solidcore-record)
+[1m[92m    Checking[0m zune-core v0.5.3
+[1m[92m    Checking[0m weezl v0.1.12
+[1m[92m    Checking[0m quick-error v2.0.1
+[1m[92m    Checking[0m either v1.19.0
+[1m[92m    Checking[0m twox-hash v2.1.5
+[1m[92m    Checking[0m web-time v1.1.0
+[1m[92m    Checking[0m rustc-hash v1.1.0
+[1m[92m    Checking[0m linux-raw-sys v0.12.1
+[1m[92m    Checking[0m naga-types v30.0.1
+[1m[92m    Checking[0m ruzstd v0.9.1
+[1m[92m    Checking[0m solidcraft-geom v0.40.0-rc.3 (/home/user/solidcraft-wt/issue-13966/crates/geom)
+[1m[92m    Checking[0m zune-jpeg v0.5.15
+[1m[92m    Checking[0m rustix v1.1.5
+[1m[92m    Checking[0m kurbo v0.13.1
+[1m[92m    Checking[0m harfrust v0.12.0
+[1m[92m    Checking[0m generic-array v0.14.7
+[1m[92m    Checking[0m miniz_oxide v0.8.9
+[1m[92m    Checking[0m fdeflate v0.3.7
+[1m[92m    Checking[0m euclid v0.22.14
+[1m[92m    Checking[0m color v0.3.3
+[1m[92m    Checking[0m roxmltree v0.21.1
+[1m[92m    Checking[0m byteorder-lite v0.1.0
+[1m[92m    Checking[0m bumpalo v3.20.3
+[1m[92m    Checking[0m unicode-width v0.2.2
+[1m[92m    Checking[0m bit-vec v0.9.1
+[1m[92m    Checking[0m pxfm v0.1.30
+[1m[92m    Checking[0m fax v0.2.7
+[1m[92m    Checking[0m linebender_resource_handle v0.1.1
+[1m[92m    Checking[0m color_quant v1.1.0
+[1m[92m    Checking[0m tiff v0.11.3
+[1m[92m    Checking[0m peniko v0.6.1
+[1m[92m    Checking[0m gif v0.14.2
+[1m[92m    Checking[0m bit-set v0.10.0
+[1m[92m    Checking[0m codespan-reporting v0.13.1
+[1m[92m    Checking[0m zopfli v0.8.3
+[1m[92m    Checking[0m image-webp v0.2.4
+[1m[92m    Checking[0m cadmpeg-core v0.6.7
+[1m[92m    Checking[0m guillotiere v0.7.0
+[1m[92m    Checking[0m moxcms v0.8.1
+[1m[92m    Checking[0m png v0.18.1
+[1m[92m    Checking[0m crossbeam-utils v0.8.23
+[1m[92m    Checking[0m sha2 v0.11.1
+[1m[92m    Checking[0m ordered-float v2.10.1
+[1m[92m    Checking[0m spirv v0.4.0+sdk-1.4.341.0
+[1m[92m    Checking[0m typed-path v0.13.0
+[1m[92m    Checking[0m raw-window-handle v0.6.2
+[1m[92m    Checking[0m static_assertions v1.1.0
+[1m[92m    Checking[0m unicode-properties v0.1.5
+[1m[92m    Checking[0m fearless_simd v0.4.1
+[1m[92m    Checking[0m naga v30.0.1
+[1m[92m    Checking[0m zip v9.1.3
+[1m[92m    Checking[0m image v0.25.10
+[1m[92m    Checking[0m wgpu-types v30.0.1
+[1m[92m    Checking[0m serde-value v0.7.0
+[1m[92m    Checking[0m crossbeam-epoch v0.9.21
+[1m[92m    Checking[0m ash v0.38.0+1.3.281
+[1m[92m    Checking[0m vello_common v0.2.0
+[1m[92m    Checking[0m block-buffer v0.10.4
+[1m[92m    Checking[0m crypto-common v0.1.7
+[1m[92m    Checking[0m dlib v0.5.3
+[1m[92m    Checking[0m emath v0.37.0
+[1m[92m    Checking[0m unicode-bidi v0.3.18
+[1m[92m    Checking[0m presser v0.3.1
+[1m[92m    Checking[0m core_detect v1.0.0
+[1m[92m    Checking[0m base64 v0.23.1
+[1m[92m    Checking[0m simdutf8 v0.1.5
+[1m[92m    Checking[0m cadmpeg-ir v0.6.7
+[1m[92m    Checking[0m encoding_rs v0.8.42
+[1m[92m    Checking[0m wgpu-naga-bridge v30.0.1
+[1m[92m    Checking[0m ecolor v0.37.0
+[1m[92m    Checking[0m wayland-sys v0.31.11
+[1m[92m    Checking[0m vello_cpu v0.2.0
+[1m[92m    Checking[0m digest v0.10.7
+[1m[92m    Checking[0m crossbeam-deque v0.8.8
+[1m[92m    Checking[0m ahash v0.8.12
+[1m[92m    Checking[0m khronos-egl v6.0.0
+[1m[92m    Checking[0m unicode-general-category v1.1.0
+[1m[92m    Checking[0m cadmpeg-container v0.6.7
+[1m[92m    Checking[0m skrifa v0.44.0
+[1m[92m    Checking[0m solidcraft-profile v0.40.0-rc.3 (/home/user/solidcraft-wt/issue-13966/crates/profile)
+[1m[92m    Checking[0m block-padding v0.4.2
+[1m[92m    Checking[0m ordered-float v5.5.0
+[1m[92m    Checking[0m solidcraft-color v0.40.0-rc.3 (/home/user/solidcraft-wt/issue-13966/crates/color)
+[1m[92m    Checking[0m epaint_default_fonts v0.37.0
+[1m[92m    Checking[0m unicode-segmentation v1.13.3
+[1m[92m    Checking[0m renderdoc-sys v1.1.0
+[1m[92m    Checking[0m self_cell v1.3.0
+[1m[92m    Checking[0m fastrand v2.5.0
+[1m[92m    Checking[0m robust v1.2.0
+[1m[92m    Checking[0m winnow v1.0.4
+[1m[92m    Checking[0m cpufeatures v0.2.17
+[1m[92m    Checking[0m glow v0.17.0
+[1m[92m    Checking[0m nohash-hasher v0.2.0
+[1m[92m    Checking[0m epaint v0.37.0
+[1m[92m    Checking[0m toml_parser v1.1.5+spec-1.1.0
+[1m[92m    Checking[0m sha2 v0.10.9
+[1m[92m    Checking[0m tempfile v3.27.0
+[1m[92m    Checking[0m inout v0.2.6
+[1m[92m    Checking[0m rayon-core v1.13.0
+[1m[92m    Checking[0m solidcore v1.0.1 (/home/user/solidcraft-wt/issue-13966/solidcore/crates/solidcore)
+[1m[92m    Checking[0m gpu-allocator v0.28.0
+[1m[92m    Checking[0m toml_datetime v1.1.2+spec-1.1.0
+[1m[92m    Checking[0m wgpu-hal v30.0.1
+[1m[92m    Checking[0m toml_writer v1.1.3+spec-1.1.0
+[1m[92m    Checking[0m uuid v1.27.0
+[1m[92m    Checking[0m accesskit v0.25.2
+[1m[92m    Checking[0m rayon v1.12.0
+[1m[92m    Checking[0m wgpu-core-deps-windows-linux-android v30.0.1
+[1m[92m    Checking[0m cipher v0.5.2
+[1m[92m    Checking[0m solidcraft-render v0.40.0-rc.3 (/home/user/solidcraft-wt/issue-13966/crates/render)
+[1m[92m    Checking[0m spade v2.15.1
+[1m[92m    Checking[0m solidcraft-step v0.40.0-rc.3 (/home/user/solidcraft-wt/issue-13966/crates/step)
+[1m[92m    Checking[0m gethostname v1.1.0
+[1m[92m    Checking[0m itertools v0.15.0
+[1m[92m    Checking[0m sha1 v0.11.0
+[1m[92m    Checking[0m serde_spanned v1.1.2
+[1m[92m   Compiling[0m solidcraft-doc v0.40.0-rc.3 (/home/user/solidcraft-wt/issue-13966/crates/doc)
+[1m[92m    Checking[0m ttf-parser v0.25.1
+[1m[92m    Checking[0m egui v0.37.0
+[1m[92m    Checking[0m solidcraft-sketch v0.40.0-rc.3 (/home/user/solidcraft-wt/issue-13966/crates/sketch)
+[1m[92m    Checking[0m toml v1.1.8+spec-1.1.0
+[1m[92m    Checking[0m wgpu-core v30.0.1
+[1m[92m    Checking[0m gltf-json v1.4.1
+[1m[92m    Checking[0m getrandom v0.3.4
+[1m[92m   Compiling[0m solidcraft-io v0.40.0-rc.3 (/home/user/solidcraft-wt/issue-13966/crates/io)
+[1m[92m   Compiling[0m solidcraft-derive v0.40.0-rc.3 (/home/user/solidcraft-wt/issue-13966/crates/derive)
+[1m[92m    Checking[0m alloc-no-stdlib v2.0.4
+[1m[92m    Checking[0m tinyvec v1.13.3
+[1m[92m    Checking[0m byteorder v1.5.0
+[1m[92m    Checking[0m lazy_static v1.5.1
+[1m[92m    Checking[0m wgpu v30.0.1
+[1m[92m    Checking[0m gltf v1.4.1
+[1m[92m    Checking[0m unicode-normalization v0.1.26
+[1m[92m    Checking[0m alloc-stdlib v0.2.4
+[1m[92m    Checking[0m ref-cast v1.0.27
+[1m[92m    Checking[0m solidcraft-control v0.40.0-rc.3 (/home/user/solidcraft-wt/issue-13966/crates/control)
+[1m[92m    Checking[0m chardetng v0.1.17
+[1m[92m    Checking[0m chacha20 v0.10.2
+[1m[92m    Checking[0m quick-xml v0.41.0
+[1m[92m    Checking[0m x11rb-protocol v0.13.2
+[1m[92m    Checking[0m arrayref v0.3.9
+[1m[92m    Checking[0m dyn-clone v1.0.20
+[1m[92m    Checking[0m strict-num v0.1.1
+[1m[92m    Checking[0m rustc-hash v2.1.3
+[1m[92m    Checking[0m cpubits v0.1.1
+[1m[92m    Checking[0m aes v0.9.4
+[1m[92m    Checking[0m type-map v0.5.1
+[1m[92m    Checking[0m x11rb v0.13.2
+[1m[92m    Checking[0m tiny-skia-path v0.12.0
+[1m[92m    Checking[0m schemars v1.2.3
+[1m[92m    Checking[0m rand v0.10.3
+[1m[92m    Checking[0m brotli-decompressor v5.0.3
+[1m[92m    Checking[0m stringprep v0.1.5
+[1m[92m   Compiling[0m solidcraft-ui-egui v0.40.0-rc.3 (/home/user/solidcraft-wt/issue-13966/crates/ui-egui)
+[1m[92m    Checking[0m cbc v0.2.1
+[1m[92m    Checking[0m ecb v0.2.1
+[1m[92m    Checking[0m cadmpeg-codec-rhino v0.6.7
+[1m[92m    Checking[0m cadmpeg-codec-step v0.6.7
+[1m[92m    Checking[0m cadmpeg-codec-freecad v0.6.7
+[1m[92m    Checking[0m toml_edit v0.25.15+spec-1.1.0
+[1m[92m    Checking[0m proc-macro2 v1.0.107
+[1m[92m    Checking[0m md-5 v0.11.0
+[1m[92m    Checking[0m serde_path_to_error v0.1.20
+[1m[92m    Checking[0m nom v8.0.0
+[1m[92m    Checking[0m weezl v0.2.1
+[1m[92m    Checking[0m cadmpeg-registry v0.6.7
+[1m[92m    Checking[0m sys-locale v0.3.2
+[1m[92m    Checking[0m rangemap v1.8.0
+[1m[92m    Checking[0m percent-encoding v2.3.2
+[1m[92m    Checking[0m pollster v0.4.0
+[1m[92m    Checking[0m arboard v3.6.1
+[1m[92m    Checking[0m solidcraft-gpu v0.40.0-rc.3 (/home/user/solidcraft-wt/issue-13966/crates/gpu)
+[1m[92m    Checking[0m solidcraft-ui-text v0.40.0-rc.3 (/home/user/solidcraft-wt/issue-13966/crates/ui-text)
+[1m[92m    Checking[0m quote v1.0.47
+[1m[92m    Checking[0m lopdf v0.45.0
+[1m[92m    Checking[0m nix v0.31.3
+[1m[92m    Checking[0m tiny-skia v0.12.0
+[1m[92m    Checking[0m egui-wgpu v0.37.0 (/home/user/solidcraft-wt/issue-13966/vendor/egui-wgpu)
+[1m[92m    Checking[0m solidcraft-control-egui v0.40.0-rc.3 (/home/user/solidcraft-wt/issue-13966/crates/control-egui)
+[1m[92m    Checking[0m solidcraft-theme v0.40.0-rc.3 (/home/user/solidcraft-wt/issue-13966/crates/theme)
+[1m[92m    Checking[0m solidcraft-ui-registry v0.40.0-rc.3 (/home/user/solidcraft-wt/issue-13966/crates/ui-registry)
+[1m[92m    Checking[0m solidcraft-space-mouse v0.40.0-rc.3 (/home/user/solidcraft-wt/issue-13966/crates/space-mouse)
+[1m[92m    Checking[0m semver v1.0.28
+[1m[92m    Checking[0m minisign-verify v0.3.0
+[1m[92m    Checking[0m syn v2.0.119
+[1m[33mwarning[0m[1m: use of deprecated method `std::sync::atomic::Atomic::<u64>::fetch_update`: renamed to `try_update` for consistency[0m
+   [1m[94m--> [0msolidcore/crates/solidcore/src/geom/context.rs:417:14
+    [1m[94m|[0m
+[1m[94m417[0m [1m[94m|[0m             .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |issued| {
+    [1m[94m|[0m              [1m[33m^^^^^^^^^^^^[0m
+    [1m[94m|[0m
+    [1m[94m= [0m[1mnote[0m: `#[warn(deprecated)]` on by default
+[1m[96mhelp[0m: replace the use of the deprecated method
+    [1m[94m|[0m
+[1m[94m417[0m [91m- [0m            .[91mfetch_update[0m(Ordering::Relaxed, Ordering::Relaxed, |issued| {
+[1m[94m417[0m [92m+ [0m            .[92mtry_update[0m(Ordering::Relaxed, Ordering::Relaxed, |issued| {
+    [1m[94m|[0m
+
+[1m[33mwarning[0m: `solidcore` (lib) generated 1 warning (run `cargo clippy --fix --lib -p solidcore -- -D warnings` to apply 1 suggestion)
+[1m[92m    Checking[0m solidcraft-smlib v0.40.0-rc.3 (/home/user/solidcraft-wt/issue-13966/crates/smlib)
+[1m[92m    Checking[0m solidcraft-kernel v0.40.0-rc.3 (/home/user/solidcraft-wt/issue-13966/crates/kernel)
+[1m[92m    Checking[0m solidcraft-engine v0.40.0-rc.3 (/home/user/solidcraft-wt/issue-13966/crates/engine)
+[1m[92m    Finished[0m `dev` profile [unoptimized + debuginfo] target(s) in 6m 47s
+CLIPPY_EXIT=0
