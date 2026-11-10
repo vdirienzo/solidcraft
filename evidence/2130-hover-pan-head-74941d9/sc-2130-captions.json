@@ -1,0 +1,22 @@
+[
+ [
+  2.71,
+  6.71,
+  "1. HOVER: the pointer rests on the top face - the face lights up"
+ ],
+ [
+  7.15,
+  11.15,
+  "2. TWO-FINGER PAN: the view moves under the still pointer - THE SAME FACE STAYS LIT"
+ ],
+ [
+  18.7,
+  22.7,
+  "3. TRACKPAD ROTATE (Shift): the view turns under the still pointer - THE SAME FACE STAYS LIT"
+ ],
+ [
+  22.39,
+  1000000000.0,
+  "4. the pointer moves: the hover is picked again, under the new pointer"
+ ]
+]

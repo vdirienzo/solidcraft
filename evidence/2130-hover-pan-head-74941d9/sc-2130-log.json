@@ -1,0 +1,247 @@
+{
+ "head": "74941d973edac13467016b35dd208894d562fc42",
+ "recorded_at": "2026-11-10T17:54:51+0100",
+ "app": "the web build of this head, served from /tmp/sc-web-dist",
+ "display": ":96 (Xvfb 1000x760x24), renderer ANGLE/SwiftShader",
+ "input": "XTest pointer moves (a real X pointer) + CDP point-mode wheel events with pointerType=mouse, which the app brackets into a two-finger trackpad gesture",
+ "steps": [
+  {
+   "t": 2.71,
+   "step": "hover",
+   "hover": {
+    "face": 0,
+    "body": "Body1",
+    "type": "face"
+   },
+   "camera": {
+    "target": [
+     75,
+     75,
+     75
+    ],
+    "yaw": 0.7,
+    "distance": 520
+   }
+  },
+  {
+   "t": 7.15,
+   "step": "pan",
+   "wheel_events_sent": 14,
+   "hover_samples": 4,
+   "faces_during_pan": [
+    0
+   ],
+   "camera_before": {
+    "target": [
+     75,
+     75,
+     75
+    ],
+    "yaw": 0.7,
+    "distance": 520
+   },
+   "camera_after": {
+    "target": [
+     96.4524298074091,
+     100.46922206811739,
+     101.42522960006094
+    ],
+    "yaw": 0.7,
+    "distance": 520
+   }
+  },
+  {
+   "t": 13.49,
+   "step": "before_rotate",
+   "hover": {
+    "face": 0,
+    "body": "Body1",
+    "type": "face"
+   },
+   "camera": {
+    "target": [
+     105.03340173037274,
+     110.65691089536435,
+     111.99532144008532
+    ],
+    "yaw": 0.7,
+    "distance": 520
+   }
+  },
+  {
+   "t": 18.7,
+   "step": "rotate",
+   "wheel_events_sent": 11,
+   "hover_samples": 11,
+   "faces_during_rotate": [
+    0
+   ],
+   "camera_before": {
+    "target": [
+     105.03340173037274,
+     110.65691089536435,
+     111.99532144008532
+    ],
+    "yaw": 0.7,
+    "distance": 520
+   },
+   "camera_after": {
+    "target": [
+     105.03340173037274,
+     110.65691089536435,
+     111.99532144008532
+    ],
+    "yaw": -0.3560000000000001,
+    "distance": 520
+   }
+  },
+  {
+   "t": 22.39,
+   "step": "pointer_moved",
+   "hover": null
+  }
+ ],
+ "hover_samples": [
+  {
+   "t": 1794329709.947,
+   "tag": "pan",
+   "hover": {
+    "face": 0,
+    "body": "Body1",
+    "type": "face"
+   }
+  },
+  {
+   "t": 1794329710.616,
+   "tag": "pan",
+   "hover": {
+    "face": 0,
+    "body": "Body1",
+    "type": "face"
+   }
+  },
+  {
+   "t": 1794329711.361,
+   "tag": "pan",
+   "hover": {
+    "face": 0,
+    "body": "Body1",
+    "type": "face"
+   }
+  },
+  {
+   "t": 1794329712.462,
+   "tag": "pan",
+   "hover": {
+    "face": 0,
+    "body": "Body1",
+    "type": "face"
+   }
+  },
+  {
+   "t": 1794329720.735,
+   "tag": "rotate",
+   "hover": {
+    "face": 0,
+    "body": "Body1",
+    "type": "face"
+   }
+  },
+  {
+   "t": 1794329721.972,
+   "tag": "rotate",
+   "hover": {
+    "face": 0,
+    "body": "Body1",
+    "type": "face"
+   }
+  },
+  {
+   "t": 1794329722.054,
+   "tag": "rotate",
+   "hover": {
+    "face": 0,
+    "body": "Body1",
+    "type": "face"
+   }
+  },
+  {
+   "t": 1794329722.592,
+   "tag": "rotate",
+   "hover": {
+    "face": 0,
+    "body": "Body1",
+    "type": "face"
+   }
+  },
+  {
+   "t": 1794329723.038,
+   "tag": "rotate",
+   "hover": {
+    "face": 0,
+    "body": "Body1",
+    "type": "face"
+   }
+  },
+  {
+   "t": 1794329723.414,
+   "tag": "rotate",
+   "hover": {
+    "face": 0,
+    "body": "Body1",
+    "type": "face"
+   }
+  },
+  {
+   "t": 1794329723.851,
+   "tag": "rotate",
+   "hover": {
+    "face": 0,
+    "body": "Body1",
+    "type": "face"
+   }
+  },
+  {
+   "t": 1794329724.248,
+   "tag": "rotate",
+   "hover": {
+    "face": 0,
+    "body": "Body1",
+    "type": "face"
+   }
+  },
+  {
+   "t": 1794329724.64,
+   "tag": "rotate",
+   "hover": {
+    "face": 0,
+    "body": "Body1",
+    "type": "face"
+   }
+  },
+  {
+   "t": 1794329724.932,
+   "tag": "rotate",
+   "hover": {
+    "face": 0,
+    "body": "Body1",
+    "type": "face"
+   }
+  },
+  {
+   "t": 1794329725.273,
+   "tag": "rotate",
+   "hover": {
+    "face": 0,
+    "body": "Body1",
+    "type": "face"
+   }
+  }
+ ],
+ "chrome_height": 57,
+ "capture": {
+  "display": "1280x776",
+  "app_canvas": "1280x720 at y=57"
+ },
+ "duration_s": 24.47
+}
