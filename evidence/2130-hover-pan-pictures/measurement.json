@@ -1,10 +1,10 @@
 {
- "head": "092f7df735598343831ea1dcd784bc22fc1ad4a8",
- "recorded_at": "2026-11-10T20:49:36+0100",
- "app": "the web build of this head, served from /tmp/sc-web-dist; its runtime code is byte-identical to the PR head",
+ "head": "e331a632b1fc0bb9c4454203532f66a92f4e1e65",
+ "recorded_at": "2026-11-10T22:46:18+0100",
+ "app": "the web build of this head, served over http from the dist dir",
  "display": ":96 (Xvfb 1280x777x24), ANGLE/SwiftShader software GL",
- "capture": "an X11 grab of the app canvas, 1280x720, cropped only the 56 rows of the browser's infobar above the app; the real X pointer is drawn in",
- "input": "XTest pointer moves (a real X pointer) + CDP point-mode wheel events with pointerType=mouse, which the app brackets into a two-finger trackpad gesture",
+ "capture": "an X11 grab of the app canvas at exactly 1280x720, cropped only the browser's infobar above the app; the real X pointer is drawn in",
+ "input": "XTest pointer moves (a real X pointer) and CDP point-mode wheel events with pointerType=mouse, which the app brackets into a two-finger trackpad gesture",
  "measurement": "the app answers control requests in its frame loop, so exactly one request in flight gives exactly one answer per frame; each answer carries the lit face (app.viewport.hover) and the geometric pick under the pointer (ui.pick)",
  "scene": {
   "body": "one box, 150 x 150 x 150 mm",
@@ -20,18 +20,22 @@
   }
  },
  "prefs": {
+  "at_1280x720": [
+   534.046875,
+   151
+  ],
   "small_window": [
    355.046875,
-   589.875
+   163
   ]
  },
  "gestures": [
   {
    "gesture": "PAN (two fingers, vertical wheel, no modifier)",
-   "wheel_events": 121,
+   "wheel_events": 68,
    "pointer_page": [
-    730,
-    330
+    560,
+    280
    ],
    "lit_at_rest": {
     "face": 0,
@@ -44,6 +48,183 @@
     "type": "face"
    },
    "pick_at_rest": 0,
+   "pick_after": 2,
+   "camera_before": {
+    "distance": 430,
+    "fov": 0,
+    "pitch": 0.72,
+    "roll": 0,
+    "target": [
+     75,
+     75,
+     75
+    ],
+    "up": "z",
+    "yaw": 0.62
+   },
+   "camera_after": {
+    "distance": 430,
+    "fov": 0,
+    "pitch": 0.72,
+    "roll": 0,
+    "target": [
+     33.50179237214384,
+     16.871853078239837,
+     -6.431738918491351
+    ],
+    "up": "z",
+    "yaw": 0.62
+   },
+   "frames_sampled": 16,
+   "samples": [
+    {
+     "t": 313,
+     "frame": 1,
+     "face": 0,
+     "type": "face",
+     "body": "Body1",
+     "pick": 0
+    },
+    {
+     "t": 637,
+     "frame": 2,
+     "face": 0,
+     "type": "face",
+     "body": "Body1",
+     "pick": 0
+    },
+    {
+     "t": 933,
+     "frame": 3,
+     "face": 0,
+     "type": "face",
+     "body": "Body1",
+     "pick": 0
+    },
+    {
+     "t": 1250,
+     "frame": 4,
+     "face": 0,
+     "type": "face",
+     "body": "Body1",
+     "pick": 0
+    },
+    {
+     "t": 1531,
+     "frame": 5,
+     "face": 0,
+     "type": "face",
+     "body": "Body1",
+     "pick": 0
+    },
+    {
+     "t": 1828,
+     "frame": 6,
+     "face": 0,
+     "type": "face",
+     "body": "Body1",
+     "pick": 0
+    },
+    {
+     "t": 2151,
+     "frame": 7,
+     "face": 0,
+     "type": "face",
+     "body": "Body1",
+     "pick": 0
+    },
+    {
+     "t": 2466,
+     "frame": 8,
+     "face": 0,
+     "type": "face",
+     "body": "Body1",
+     "pick": 0
+    },
+    {
+     "t": 2818,
+     "frame": 9,
+     "face": 0,
+     "type": "face",
+     "body": "Body1",
+     "pick": 2
+    },
+    {
+     "t": 3112,
+     "frame": 10,
+     "face": 0,
+     "type": "face",
+     "body": "Body1",
+     "pick": 2
+    },
+    {
+     "t": 3466,
+     "frame": 11,
+     "face": 0,
+     "type": "face",
+     "body": "Body1",
+     "pick": 2
+    },
+    {
+     "t": 3778,
+     "frame": 12,
+     "face": 0,
+     "type": "face",
+     "body": "Body1",
+     "pick": 2
+    },
+    {
+     "t": 4132,
+     "frame": 13,
+     "face": 0,
+     "type": "face",
+     "body": "Body1",
+     "pick": 2
+    },
+    {
+     "t": 4558,
+     "frame": 14,
+     "face": 0,
+     "type": "face",
+     "body": "Body1",
+     "pick": 2
+    },
+    {
+     "t": 4962,
+     "frame": 15,
+     "face": 0,
+     "type": "face",
+     "body": "Body1",
+     "pick": 2
+    },
+    {
+     "t": 5312,
+     "frame": 16,
+     "face": 0,
+     "type": "face",
+     "body": "Body1",
+     "pick": 2
+    }
+   ]
+  },
+  {
+   "gesture": "ROTATE (two fingers, shift + horizontal wheel)",
+   "wheel_events": 35,
+   "pointer_page": [
+    480,
+    330
+   ],
+   "lit_at_rest": {
+    "face": 2,
+    "body": "Body1",
+    "type": "face"
+   },
+   "lit_after": {
+    "face": 2,
+    "body": "Body1",
+    "type": "face"
+   },
+   "pick_at_rest": 2,
    "pick_after": 3,
    "camera_before": {
     "distance": 430,
@@ -64,295 +245,142 @@
     "pitch": 0.72,
     "roll": 0,
     "target": [
-     30.427851066376714,
-     12.566064417368722,
-     -12.46371957912034
+     75,
+     75,
+     75
     ],
     "up": "z",
-    "yaw": 0.62
+    "yaw": -1.46
    },
-   "frames_sampled": 18,
+   "frames_sampled": 16,
    "samples": [
     {
-     "t": 230,
+     "t": 165,
      "frame": 1,
-     "face": 0,
+     "face": 2,
      "type": "face",
      "body": "Body1",
-     "pick": 0
+     "pick": 2
     },
     {
-     "t": 554,
+     "t": 508,
      "frame": 2,
-     "face": 0,
+     "face": 2,
      "type": "face",
      "body": "Body1",
-     "pick": 0
+     "pick": 2
     },
     {
-     "t": 901,
+     "t": 811,
      "frame": 3,
-     "face": 0,
+     "face": 2,
      "type": "face",
      "body": "Body1",
-     "pick": 0
+     "pick": 2
     },
     {
-     "t": 1281,
+     "t": 1097,
      "frame": 4,
-     "face": 0,
+     "face": 2,
      "type": "face",
      "body": "Body1",
-     "pick": 0
+     "pick": 2
     },
     {
-     "t": 1585,
+     "t": 1390,
      "frame": 5,
-     "face": 0,
+     "face": 2,
      "type": "face",
      "body": "Body1",
-     "pick": 0
+     "pick": 2
     },
     {
-     "t": 1925,
+     "t": 1715,
      "frame": 6,
-     "face": 0,
+     "face": 2,
+     "type": "face",
+     "body": "Body1",
+     "pick": 2
+    },
+    {
+     "t": 1973,
+     "frame": 7,
+     "face": 2,
+     "type": "face",
+     "body": "Body1",
+     "pick": 2
+    },
+    {
+     "t": 2245,
+     "frame": 8,
+     "face": 2,
+     "type": "face",
+     "body": "Body1",
+     "pick": 2
+    },
+    {
+     "t": 2513,
+     "frame": 9,
+     "face": 2,
      "type": "face",
      "body": "Body1",
      "pick": 0
     },
     {
-     "t": 2281,
-     "frame": 7,
-     "face": 0,
-     "type": "face",
-     "body": "Body1",
-     "pick": 3
-    },
-    {
-     "t": 2645,
-     "frame": 8,
-     "face": 0,
-     "type": "face",
-     "body": "Body1",
-     "pick": 3
-    },
-    {
-     "t": 3762,
-     "frame": 9,
-     "face": 0,
-     "type": "face",
-     "body": "Body1",
-     "pick": 3
-    },
-    {
-     "t": 3814,
+     "t": 2814,
      "frame": 10,
-     "face": 0,
+     "face": 2,
      "type": "face",
      "body": "Body1",
      "pick": 3
     },
     {
-     "t": 4400,
+     "t": 3127,
      "frame": 11,
-     "face": 0,
+     "face": 2,
      "type": "face",
      "body": "Body1",
      "pick": 3
     },
     {
-     "t": 4813,
+     "t": 3463,
      "frame": 12,
-     "face": 0,
+     "face": 2,
      "type": "face",
      "body": "Body1",
      "pick": 3
     },
     {
-     "t": 5165,
+     "t": 3769,
      "frame": 13,
-     "face": 0,
+     "face": 2,
      "type": "face",
      "body": "Body1",
      "pick": 3
     },
     {
-     "t": 5448,
+     "t": 4079,
      "frame": 14,
-     "face": 0,
+     "face": 2,
      "type": "face",
      "body": "Body1",
      "pick": 3
     },
     {
-     "t": 5741,
+     "t": 4464,
      "frame": 15,
-     "face": 0,
+     "face": 2,
      "type": "face",
      "body": "Body1",
      "pick": 3
     },
     {
-     "t": 6056,
+     "t": 4842,
      "frame": 16,
-     "face": 0,
+     "face": 2,
      "type": "face",
      "body": "Body1",
      "pick": 3
-    },
-    {
-     "t": 6368,
-     "frame": 17,
-     "face": 0,
-     "type": "face",
-     "body": "Body1",
-     "pick": 3
-    },
-    {
-     "t": 6678,
-     "frame": 18,
-     "face": 0,
-     "type": "face",
-     "body": "Body1",
-     "pick": 3
-    }
-   ]
-  },
-  {
-   "gesture": "ROTATE (two fingers, shift + horizontal wheel)",
-   "wheel_events": 103,
-   "pointer_page": [
-    760,
-    365
-   ],
-   "lit_at_rest": {
-    "face": 0,
-    "body": "Body1",
-    "type": "face"
-   },
-   "lit_after": {
-    "face": 0,
-    "body": "Body1",
-    "type": "face"
-   },
-   "pick_at_rest": 3,
-   "pick_after": null,
-   "camera_before": {
-    "distance": 430,
-    "fov": 0,
-    "pitch": 0.72,
-    "roll": 0,
-    "target": [
-     56.55635216539727,
-     49.16526803477328,
-     38.80811603622607
-    ],
-    "up": "z",
-    "yaw": 0.62
-   },
-   "camera_after": {
-    "distance": 430,
-    "fov": 0,
-    "pitch": 0.72,
-    "roll": 0,
-    "target": [
-     7.373291273123305,
-     -19.72735053916469,
-     -57.70357453383776
-    ],
-    "up": "z",
-    "yaw": 0.62
-   },
-   "frames_sampled": 11,
-   "samples": [
-    {
-     "t": 216,
-     "frame": 1,
-     "face": 0,
-     "type": "face",
-     "body": "Body1",
-     "pick": 3
-    },
-    {
-     "t": 1486,
-     "frame": 2,
-     "face": 0,
-     "type": "face",
-     "body": "Body1",
-     "pick": null
-    },
-    {
-     "t": 2352,
-     "frame": 3,
-     "face": 0,
-     "type": "face",
-     "body": "Body1",
-     "pick": null
-    },
-    {
-     "t": 3433,
-     "frame": 4,
-     "face": 0,
-     "type": "face",
-     "body": "Body1",
-     "pick": null
-    },
-    {
-     "t": 4049,
-     "frame": 5,
-     "face": 0,
-     "type": "face",
-     "body": "Body1",
-     "pick": null
-    },
-    {
-     "t": 4538,
-     "frame": 6,
-     "face": 0,
-     "type": "face",
-     "body": "Body1",
-     "pick": null
-    },
-    {
-     "t": 4943,
-     "frame": 7,
-     "face": 0,
-     "type": "face",
-     "body": "Body1",
-     "pick": null
-    },
-    {
-     "t": 5444,
-     "frame": 8,
-     "face": 0,
-     "type": "face",
-     "body": "Body1",
-     "pick": null
-    },
-    {
-     "t": 5951,
-     "frame": 9,
-     "face": 0,
-     "type": "face",
-     "body": "Body1",
-     "pick": null
-    },
-    {
-     "t": 6746,
-     "frame": 10,
-     "face": 0,
-     "type": "face",
-     "body": "Body1",
-     "pick": null
-    },
-    {
-     "t": 6813,
-     "frame": 11,
-     "face": 0,
-     "type": "face",
-     "body": "Body1",
-     "pick": null
     }
    ]
   }
