@@ -443,6 +443,14 @@ pub(crate) fn no_body<'a>(name: &str, bodies: impl IntoIterator<Item = &'a str>)
     }
 }
 
+/// Is the timeline rolled back? The marker is the index of the first feature that is not
+/// evaluated, so a marker at the end of the features leaves every feature evaluated, as no
+/// marker does. Deleting a feature to the right of the cursor leaves the cursor there, at the
+/// end of what is left (#14884).
+pub(crate) fn timeline_rolled_back(doc: &solidcraft_doc::Document) -> bool {
+    doc.marker.is_some_and(|marker| marker < doc.features.len())
+}
+
 /// Levenshtein distance: the single-character edits that turn `a` into `b`.
 pub(crate) fn edit_distance(a: &str, b: &str) -> usize {
     let b: Vec<char> = b.chars().collect();
