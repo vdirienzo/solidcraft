@@ -1,0 +1,137 @@
+{
+ "head": "a66b1c857ff25e2c4b653be863cfcbb55e898785",
+ "recorded_at": "2026-11-11T22:00:46+0100",
+ "app": "the web build of this head, served over http from the dist dir",
+ "display": ":96 (Xvfb 1280x777x24), ANGLE/SwiftShader software GL",
+ "capture": "an X11 grab of the app's canvas at exactly 1280x720, cropped only the browser's infobar above the app; the real X pointer is drawn in",
+ "input": "the app's own control channel (the one the scenarios and the MCP bridge use): ui.handles to find a widget by name, ui.click to press it, ui.camera to pose the view",
+ "scene": {
+  "body": "one plate, 40 x 30 x 10 mm, its corner at the model's origin",
+  "camera": "orthographic (1:1 mm), looking down on the plate from its middle"
+ },
+ "dialog": {
+  "open": {
+   "command": "file.export_view_dxf",
+   "commands": [],
+   "editing": null,
+   "error": null,
+   "inputs": [],
+   "title": "Export Current View as DXF",
+   "waiting": null
+  },
+  "zero_target_handle": [
+   1140,
+   473
+  ],
+  "zero_origin_handle": [
+   1140,
+   506
+  ],
+  "after_click": {
+   "command": "file.export_view_dxf",
+   "commands": [],
+   "editing": null,
+   "error": null,
+   "inputs": [],
+   "title": "Export Current View as DXF",
+   "waiting": null
+  },
+  "export_bounds": {
+   "target": {
+    "bounds": {
+     "min": [
+      -20.0,
+      -15.0005
+     ],
+     "max": [
+      20.0,
+      15.0005
+     ]
+    },
+    "bytes": 4016,
+    "visible": 5
+   },
+   "origin": {
+    "bounds": {
+     "min": [
+      0.0,
+      0.0
+     ],
+     "max": [
+      40.0,
+      30.001
+     ]
+    },
+    "bytes": 3970,
+    "visible": 5
+   }
+  },
+  "export_camera": {
+   "distance": 110,
+   "fov": 0,
+   "pitch": 1.5706963,
+   "roll": 0,
+   "target": [
+    20,
+    15,
+    5
+   ],
+   "up": "z",
+   "yaw": 0
+  }
+ },
+ "pictures": [
+  {
+   "file": "01-dxf-export-dialog-zero-point.png",
+   "width": 1280,
+   "height": 720,
+   "bytes": 169549,
+   "what": "the DXF export dialog open, with the new 'Zero point' option visible ('Camera target' selected)"
+  },
+  {
+   "file": "02-dxf-export-dialog-model-origin-chosen.png",
+   "width": 1280,
+   "height": 720,
+   "bytes": 169529,
+   "what": "the same dialog with 'Model origin' chosen"
+  }
+ ],
+ "picture_size": "1280x720",
+ "shows": "the DXF export dialog, with the new 'Zero point' choice between 'Camera target' and 'Model origin' and the line that says where the drawing's 0,0 is",
+ "measurement": {
+  "what": "the drawing's extents in the DXF the app itself exports, read back from the app's export command (file.export_view_dxf)",
+  "plate": "40 x 30 mm, its corner at the model's origin (0,0,0)",
+  "camera_target": [
+   20,
+   15,
+   5
+  ],
+  "zero_target": {
+   "bounds": {
+    "min": [
+     -20.0,
+     -15.0005
+    ],
+    "max": [
+     20.0,
+     15.0005
+    ]
+   },
+   "meaning": "the camera target is the drawing's 0,0"
+  },
+  "zero_origin": {
+   "bounds": {
+    "min": [
+     0.0,
+     0.0
+    ],
+    "max": [
+     40.0,
+     30.001
+    ]
+   },
+   "meaning": "the model's origin is the drawing's 0,0"
+  }
+ },
+ "read_by": "the smallest and largest x and y of every point in the DXF's ENTITIES section"
+}
