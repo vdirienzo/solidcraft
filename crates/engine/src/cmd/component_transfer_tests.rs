@@ -668,6 +668,20 @@ fn sketches_to_parts_takes_a_name_that_looks_like_an_id_as_the_name() {
     assert_eq!(kept, [named], "{r}");
 }
 
+/// Deleting the feature to the right of the history cursor leaves the cursor at the end of the
+/// timeline, where nothing is rolled back: the body that is left can still become a component
+/// (#14884).
+#[test]
+fn a_body_becomes_a_component_after_the_feature_to_the_right_of_the_cursor_is_deleted() {
+    let mut s = Session::default();
+    run(&mut s, "solid.box", json!({"name":"First","length":10,"width":10,"height":10,"body_name":"FirstBody"}));
+    run(&mut s, "solid.box", json!({"name":"Second","length":10,"width":10,"height":10,"corner":[50,0,0],"body_name":"SecondBody"}));
+    run(&mut s, "timeline.rollback", json!({"position":1}));
+    run(&mut s, "timeline.delete", json!({"feature":"Second"}));
+    let made = run(&mut s, "component.from_bodies", json!({"bodies":["FirstBody"]}));
+    assert_eq!(made["components"].as_array().map(|made| made.len()), Some(1), "{made}");
+}
+
 /// `component.move_sketches` with `"2"` moves the sketch named "2", and with the number 2 the
 /// sketch with that id, as the other component commands (#9748).
 #[test]
