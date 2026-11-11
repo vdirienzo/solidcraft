@@ -964,6 +964,24 @@ fn joint_items(app: &SolveApp, id: u64) -> Vec<Item> {
     ]
 }
 
+/// The parameters that ground an occurrence (`grounded: true`) or free it (`grounded: false`).
+fn ground_params(occurrence: u64, grounded: bool) -> Value {
+    json!({"occurrence": occurrence, "grounded": grounded})
+}
+
+/// The ribbon's Ground button has no target of its own: it grounds (or frees) the placement the
+/// selection points at, the way the tree's Position menu does (#14911). With nothing selected the
+/// command is left to refuse itself, for it has no occurrence to name.
+pub(crate) fn ground_selected(app: &mut SolveApp) -> bool {
+    let Some(occurrence) = crate::joint_handles::selected_occurrence(app) else { return false };
+    let Some(placement) = app.session.doc.occurrences.iter().find(|o| o.id == occurrence) else { return false };
+    let params = ground_params(occurrence, !placement.grounded);
+    if app.run("occurrence.ground", params).is_err() {
+        app.restore_command_tab();
+    }
+    true
+}
+
 /// The menu of the placement at `path`: its component's menu, with the rows aimed at this
 /// placement, and "Relink Source…" for it alone when the component is placed more than once.
 fn occurrence_items(app: &SolveApp, path: &[u64]) -> Vec<Item> {
@@ -983,7 +1001,7 @@ fn occurrence_items(app: &SolveApp, path: &[u64]) -> Vec<Item> {
         "ui.editInPlace" => item.params = Some(json!({"component": placement.component, "path": path})),
         "occurrence.ground" => {
             item.label = if placement.grounded { "Unground" } else { "Ground" }.into();
-            item.params = Some(json!({"occurrence": placement.occurrence, "grounded": !placement.grounded}));
+            item.params = Some(ground_params(placement.occurrence, !placement.grounded));
         }
         "ui.moveOccurrence" => {
             item.params = Some(json!({"occurrence": placement.occurrence, "path": path}));
@@ -1112,7 +1130,7 @@ fn component_items(app: &SolveApp, id: u64) -> Vec<Item> {
         let moved = !app.session.pending_moves.is_empty();
         let joints = &app.session.doc.assembly.joints;
         let mut placement = vec![
-            cmd(app, "occurrence.ground", if grounded { "Unground" } else { "Ground" }).with(json!({ "occurrence": oid, "grounded": !grounded })),
+            cmd(app, "occurrence.ground", if grounded { "Unground" } else { "Ground" }).with(ground_params(oid, !grounded)),
             turn_up_axis(oid, movable),
             // Capture Position also saves the joints' values, and Revert Position puts them back.
             cmd(app, "component.capture_position", "Capture Position")
@@ -3540,6 +3558,31 @@ mod tests {
             let c = radial_center(at, screen);
             assert!(screen.contains_rect(Rect::from_center_size(c, vec2(2.0 * RX, 2.0 * RY))));
         }
+    }
+
+    /// #14911: the ribbon's Ground button has no target of its own, so it grounds (or frees) the
+    /// placement the selection points at, the way the tree's Position menu does. Nothing selected:
+    /// the command keeps refusing itself and the ribbon stays where it was.
+    #[test]
+    fn ground_from_the_ribbon_grounds_the_selected_placement() {
+        let mut h = crate::scenario::Harness::new();
+        h.app.home.open = false;
+        let part = h.app.run("component.create", json!({"name": "Block", "grounded": false})).unwrap();
+        let occurrence = part["occurrence"].as_u64().unwrap();
+        let grounded = |h: &crate::scenario::Harness| {
+            h.app.session.doc.occurrences.iter().find(|o| o.id == occurrence).expect("the placement is there").grounded
+        };
+        h.app.session.selection = vec![Sel::Occurrence { path: vec![occurrence] }];
+        h.app.ui.tab = "MODEL".into();
+
+        h.app.start("occurrence.ground");
+        assert!(grounded(&h), "the selected placement is grounded");
+        assert!(!h.app.status.as_ref().is_some_and(|(_, _, error)| *error), "no refusal reaches the status line");
+        assert_eq!(h.app.ui.tab, "ASSEMBLE", "the ribbon shows the command's tab");
+
+        h.app.start("occurrence.ground");
+        assert!(!grounded(&h), "the same button frees the placement again");
+        assert_eq!(h.app.ui.tab, "ASSEMBLE", "the ribbon stays on the command's tab");
     }
 }
 

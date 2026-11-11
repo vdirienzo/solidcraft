@@ -2101,6 +2101,13 @@ impl SolveApp {
         dim_view::cancel();
         self.tool = None;
         self.home.open = false;
+        // Ground acts on the selected placement: the ribbon's Ground button has no target of its
+        // own, so it grounds (or frees) what the selection points at, as the tree's Position menu
+        // does (#14911). With nothing selected it keeps refusing itself, as the command without
+        // a target does.
+        if id == "occurrence.ground" && context_menu::ground_selected(self) {
+            return;
+        }
         if dialogs_sheet::start_export(self, id) || toolbar::start_export(self, id) {
             return;
         }
