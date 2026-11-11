@@ -1,0 +1,42 @@
+{
+  "ar": {
+    "dxf.zero": "نقطة الصفر",
+    "dxf.zero_origin": "أصل النموذج",
+    "dxf.zero_target": "هدف الكاميرا"
+  },
+  "de": {
+    "dxf.zero": "Nullpunkt",
+    "dxf.zero_origin": "Modellursprung",
+    "dxf.zero_target": "Kameraziel"
+  },
+  "en": {
+    "dxf.zero": "Zero point",
+    "dxf.zero_origin": "Model origin",
+    "dxf.zero_target": "Camera target"
+  },
+  "he": {
+    "dxf.zero": "נקודת האפס",
+    "dxf.zero_origin": "מוצא המודל",
+    "dxf.zero_target": "יעד המצלמה"
+  },
+  "ja": {
+    "dxf.zero": "原点の位置",
+    "dxf.zero_origin": "モデルの原点",
+    "dxf.zero_target": "カメラ注視点"
+  },
+  "ko": {
+    "dxf.zero": "영점 위치",
+    "dxf.zero_origin": "모델 원점",
+    "dxf.zero_target": "카메라 대상"
+  },
+  "vi": {
+    "dxf.zero": "Điểm gốc",
+    "dxf.zero_origin": "Gốc mô hình",
+    "dxf.zero_target": "Mục tiêu camera"
+  },
+  "zh": {
+    "dxf.zero": "零点位置",
+    "dxf.zero_origin": "模型原点",
+    "dxf.zero_target": "相机目标"
+  }
+}

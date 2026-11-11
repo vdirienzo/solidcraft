@@ -10,6 +10,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use solidcore_record::Vec3;
 pub use solidcraft_engine::doc::display_units::{format_length, length_number, length_precision, unit_scale};
+use solidcraft_engine::schema::silhouette::DxfZero;
 use solidcraft_viewport::Camera;
 
 /// The key the apps keep the preferences under in eframe's storage.
@@ -1480,6 +1481,9 @@ preference_settings! {
     view_dxf_dashed: bool = false;
     /// Model-space chord tolerance for current-view DXF curves, in millimetres.
     view_dxf_tolerance: f64 = 0.01;
+    /// Where the current-view DXF export puts the drawing's 0,0: the camera target or the
+    /// model's origin as seen from the camera (#14686).
+    view_dxf_zero: DxfZero = DxfZero::Target;
     /// Send to Slicer: the last slicer used (an installed slicer's id or a program path).
     send_slicer: String = String::new();
     /// Slicers that can load a file into the window that is already open do so (default on).
@@ -4160,6 +4164,11 @@ fn prepare_preferences(
         && !matches!(v.as_str(), Some("view" | "window"))
     {
         return Err("`dimension_input` must be view or window".into());
+    }
+    if let Some(v) = p.get("view_dxf_zero")
+        && !matches!(v.as_str(), Some("target" | "origin"))
+    {
+        return Err("`view_dxf_zero` must be target or origin".into());
     }
     if let Some(value) = p.get("graphics_backend")
         && !value.as_str().is_some_and(|id| GRAPHICS_BACKENDS.contains(&id) || id == app.preferences.graphics_backend)

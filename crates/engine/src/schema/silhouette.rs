@@ -278,7 +278,7 @@ fn hidden<'de, D: Deserializer<'de>>(d: D) -> Result<Option<HiddenLines>, D::Err
 }
 
 /// Where the drawing's zero point is.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum DxfZero {
     /// The point the camera looks at.

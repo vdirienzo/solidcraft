@@ -1,8 +1,9 @@
 # Export the current view as DXF
 
 Choose **File → Export Current View as DXF…**, choose whether to omit hidden edges or
-export them as dashed lines, set **Curve tolerance**, then choose **Export DXF…** and a
-destination. Both settings are remembered. The Japanese menu is
+export them as dashed lines, set **Curve tolerance**, choose where the drawing's zero goes
+(**Zero point**), then choose **Export DXF…** and a destination. All three settings are
+remembered. The Japanese menu is
 **ファイル → 現在の表示をDXFでエクスポート…**.
 
 On desktop, the export runs on a background worker while the window continues repainting
@@ -37,6 +38,11 @@ there is neither a shown body nor a shown sketch curve.
 Coordinates are 2D, Z=0, in millimetres. Orthographic views retain 1:1 dimensions in the
 view plane. Perspective views retain foreshortening, projected onto the plane through the
 camera target; they are intended for illustrations rather than dimensioned fabrication.
+**Zero point** chooses where the drawing's 0,0 is. **Camera target** (the default) centres
+the drawing on the point the camera looks at, so the model's origin lands on 0,0 only when the
+camera looks at it. **Model origin** puts the model's origin on 0,0 as the camera sees it,
+which is what a machine needs to cut from a part corner; the rest of the drawing keeps its
+place relative to that origin.
 Curves and curved silhouettes are approximated with straight segments at a default
 model-space chord tolerance of 0.01 mm. The setting accepts 0.0001–1 mm; smaller values
 produce finer curves and generally need more time and memory. This is not an exact analytic
