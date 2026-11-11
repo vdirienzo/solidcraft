@@ -55,6 +55,10 @@ mod display_preview_tests;
 mod neutral_click_tests;
 
 #[cfg(test)]
+#[path = "scratch_repro_tests.rs"]
+mod scratch_repro_tests;
+
+#[cfg(test)]
 #[path = "symmetry_pick_tests.rs"]
 mod symmetry_pick_tests;
 
