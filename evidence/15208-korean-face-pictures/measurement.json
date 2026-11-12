@@ -1,0 +1,127 @@
+{
+ "head": "53b02abed84467b5b02fad4555158d7b50caa113",
+ "recorded_at": "2026-11-12T06:49:54+0100",
+ "app": "the web build of this head, served over http from the dist dir",
+ "display": ":96 (Xvfb 1280x777x24), ANGLE/SwiftShader software GL",
+ "window": {
+  "browser_window": "1280x777 (Chromium in app mode: no tab strip, no URL bar)",
+  "app_canvas": "1280x720 (the X11 grab is cropped to exactly this)",
+  "device_pixel_ratio": 1,
+  "inner_size": [
+   1279,
+   720
+  ]
+ },
+ "capture": "an X11 grab of the app's canvas at exactly 1280x720, cropped only the browser's infobar above the app; the real X pointer is drawn in",
+ "input": "the app's own control channel (the one the scenarios and the MCP bridge use): ui.prefs to set the interface language and open the Preferences window, ui.help to open About, ui.handles to find a widget by name, ui.click to press it",
+ "steps": [
+  "opened the app; the Home screen's 'New design' (home:new) took it to the 3D workspace",
+  "ui.prefs {\"language\": \"ko\"} -- the app's own control channel; the app then reports language \"ko\"",
+  "ui.prefs {\"open\": \"General\"} -- the Preferences window on the General page, in Korean",
+  "ui.prefs {\"ui_scale\": 1.75} -- the app's own interface scale, so the Hangul is drawn large",
+  "ui.help {\"item\": \"about\"} -- the About SolidCraft window, whose build line reads 버전 ... · 커밋 ... · 빌드 날짜 ..."
+ ],
+ "pictures": [
+  {
+   "file": "01-korean-preferences-general.png",
+   "what": "the Preferences window open on the General page in Korean: the labels draw as Hangul (일반 / 프로필, 언어, 파일 및 업데이트. / 언어 / 인터페이스 언어 / 한국어 / 시작 및 저장), not as empty boxes",
+   "width": 1280,
+   "height": 720
+  },
+  {
+   "file": "02-korean-at-175-percent.png",
+   "what": "the same Korean Preferences page at 175% interface scale (the app's own scale preference), so the Hangul glyphs are large enough to read plainly",
+   "width": 1280,
+   "height": 720
+  },
+  {
+   "file": "03-korean-about-dialog.png",
+   "what": "the About SolidCraft window in Korean: the build line reads 버전 0.40.1 · 커밋 53b02abed · 빌드 날짜 2026-11-12, in Hangul, with the commit of the head that was built",
+   "width": 1280,
+   "height": 720
+  }
+ ],
+ "language_before": "system",
+ "language_after": "ko",
+ "effective_language": "ko",
+ "app_version": "0.40.1",
+ "app_commit": "53b02abed",
+ "app_built": "2026-11-12",
+ "console": [
+  "warning The `integrity` attribute is currently ignored for preload destinations that do not support subresource integrity. See https://crbug.com/981419 for more information",
+  "info Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner.",
+  "warning No available adapters.",
+  "warning [egui_wgpu] egui-wgpu/src/lib.rs:718: Software rasterizer detected - loss of performance expected. backend: Gl, device_type: Cpu, name: \"ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)\", driver_info: \"WebGL 2.0 (OpenGL ES 3.0 Chromium)\", subgroup_size: 4..=128, transient_saves_memory: None, limit_bucket: None",
+  "info [solidcraft_viewport_gpu::view::oit] viewport-gpu/src/view/oit.rs:198: see-through surfaces are sorted (no order-independent transparency here: Validation Error\n\nCaused by:\n  In Device::create_render_pipeline, label = 'sc_oit'\n    Downlevel flags DownlevelFlags(INDEPENDENT_BLEND) are required but not supported on the device.\nThis is not an invalid use of WebGPU: the underlying API or device does not support enough features to be a fully compliant implementation. A subset of the features can still be used. If you are running this program on native and not in a browser and wish to work around this issue, call Adapter::downlevel_properties or Device::downlevel_properties to get a listing of the features the current platform supports.\n)",
+  "info [solidcraft_web::web] solidcraft-web/src/main.rs:1246: SolidCraft graphics: Gl, MSAA 1x (saved 4x)",
+  "info [eframe::web::web_runner] eframe-0.37.0/src/web/web_runner.rs:94: event handlers installed.",
+  "warning Canvas2D: Multiple readback operations using getImageData are faster with the willReadFrequently attribute set to true. See: https://html.spec.whatwg.org/multipage/canvas.html#concept-canvas-will-read-frequently",
+  "info [solidcraft_web::web] solidcraft-web/src/main.rs:1056: loaded web script font from ./fonts/CraftUI-KR.otf"
+ ],
+ "korean_font_log": [
+  "info [solidcraft_web::web] solidcraft-web/src/main.rs:1056: loaded web script font from ./fonts/CraftUI-KR.otf"
+ ],
+ "font_files_fetched": [
+  "http://127.0.0.1:8902/fonts/CraftUI-KR.otf"
+ ],
+ "prefs_dialog": null,
+ "prefs_page_handles": [
+  "prefs:page:3D mouse",
+  "prefs:page:AI",
+  "prefs:page:Appearance",
+  "prefs:page:Assistant",
+  "prefs:page:Design",
+  "prefs:page:General",
+  "prefs:page:Graphics",
+  "prefs:page:Interface",
+  "prefs:page:Interface/navigation bar",
+  "prefs:page:Keyboard Shortcuts",
+  "prefs:page:Layout",
+  "prefs:page:Navigation",
+  "prefs:page:Plugins",
+  "prefs:page:Selection",
+  "prefs:page:Shortcuts",
+  "prefs:page:Sketch",
+  "prefs:page:Sketch & selection",
+  "prefs:page:Sketch and selection",
+  "prefs:page:Tools"
+ ],
+ "korean_widget_handles": [
+  "dialog:button::가져오기...",
+  "dialog:button::새로 저장",
+  "dialog:button::지금 확인",
+  "dialog:button::충돌 보고서 열기…",
+  "dialog:button::페이지 기본값 복원",
+  "dialog:inline:열 수 있는 최대 파일 크기",
+  "dialog:inline:이 컴퓨터",
+  "dialog:inline:포함 항목",
+  "dialog:row:인터페이스 언어",
+  "dialog:row:자동 저장 간격",
+  "dialog:row:출력 바닥면 강조",
+  "dialog:section:대화 상자",
+  "dialog:section:시작 및 저장",
+  "dialog:section:언어",
+  "dialog:section:업데이트",
+  "dialog:section:충돌 보고서",
+  "dialog:section:파일",
+  "dialog:section:프로파일",
+  "dialog:slider:출력 바닥면 강조",
+  "dialog:인터페이스 언어",
+  "dialog:프로필 이름"
+ ],
+ "ui_scale_for_the_zoomed_picture": 1.75,
+ "interface_language_row_handle": [
+  460.578125,
+  463.3125
+ ],
+ "about_open": true,
+ "about_handles": {
+  "about:copy_diagnostics": [
+   435.296875,
+   260
+  ]
+ },
+ "picture_size": "1280x720",
+ "shows": "the Korean interface of the web build of this head, drawing Hangul with the bundled Korean face",
+ "pictures_note": "the pictures in this folder, in order"
+}
