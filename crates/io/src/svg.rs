@@ -7,6 +7,8 @@ use quick_xml::Reader;
 use quick_xml::events::{BytesStart, Event};
 use solidcore_record::Vec2;
 use solidcraft_geom::prelude::*;
+use std::collections::HashMap;
+use std::ops::Range;
 
 use crate::sketch2d::{Geom2, MAX_DRAWING_BYTES, MAX_ENTITIES};
 use crate::{IoError, Result};
@@ -20,6 +22,12 @@ struct Tf([f64; 6]);
 
 impl Tf {
     const ID: Tf = Tf([1.0, 0.0, 0.0, 1.0, 0.0, 0.0]);
+    fn translate(x: f64, y: f64) -> Tf {
+        Tf([1.0, 0.0, 0.0, 1.0, x, y])
+    }
+    fn scale(sx: f64, sy: f64) -> Tf {
+        Tf([sx, 0.0, 0.0, sy, 0.0, 0.0])
+    }
     fn mul(self, o: Tf) -> Tf {
         let [a, b, c, d, e, f] = self.0;
         let [a2, b2, c2, d2, e2, f2] = o.0;
