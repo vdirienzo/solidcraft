@@ -2575,4 +2575,35 @@ mod card_tests {
         assert_eq!(h.app.preferences.agent_models.get("api-1").map(String::as_str), Some("vendor/own"));
         assert_eq!(seen.lock().unwrap().len(), 1, "listed once");
     }
+
+    /// A pasted key reaches the API key field of the endpoint dialog (#15187).
+    ///
+    /// The platform hands a paste over as `egui::Event::Paste`, the way egui-winit does once the
+    /// system clipboard answers the shortcut. Nothing in the app may swallow it before the
+    /// focused field reads it.
+    #[test]
+    fn a_paste_reaches_the_api_key_field() {
+        let mut h = Harness::new();
+        h.call("ui.resize", json!({"width": 1600.0, "height": 4000.0}));
+        h.app.home.open = false;
+        h.app.preferences.ai_features = true;
+        h.app.agent_chat.detection = Some(Default::default());
+        // The field is only enabled with a keychain behind it.
+        h.app.services.secrets = Some(std::sync::Arc::new(MemoryKeys::default()));
+        open_add(&mut h.app);
+        h.frames(4);
+        h.step(&json!({"click":{"handle":"ai_add:ui.ai_add_endpoint"}})).unwrap();
+        h.frames(3);
+        // Click the key field, as a person does before pasting into it.
+        h.step(&json!({"click":{"handle":"ai_add:key"}})).unwrap();
+        h.frames(2);
+        // The platform's paste, carrying the key the user copied elsewhere.
+        h.frame_with(vec![egui::Event::Paste("sk-test-key".into())]);
+        h.frames(2);
+        assert_eq!(
+            h.app.agent_chat.settings.add.as_ref().unwrap().key,
+            "sk-test-key",
+            "the pasted key reached the API key field"
+        );
+    }
 }
