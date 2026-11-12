@@ -1154,6 +1154,24 @@ fn bounded_dropdown_focus_announces_full_selected_source_with_a_nonempty_accessi
 }
 
 #[test]
+fn scratch_a_paste_lands_in_a_password_field() {
+    let ctx = crate::test_support::context();
+    let id = egui::Id::unique("scratch_password");
+    let value = std::cell::RefCell::new(String::new());
+    let rect = std::cell::Cell::new(egui::Rect::NOTHING);
+    let mut draw = |ui: &mut Ui| {
+        rect.set(password_field(ui, id, &mut value.borrow_mut(), "Key").rect);
+    };
+    frame(&ctx, vec![], &mut draw);
+    let pos = rect.get().center();
+    frame(&ctx, pointer(pos, true), &mut draw);
+    frame(&ctx, pointer(pos, false), &mut draw);
+    assert!(ctx.memory(|m| m.has_focus(id)), "the field has the focus");
+    frame(&ctx, vec![egui::Event::Paste("sk-test-key".to_string())], &mut draw);
+    assert_eq!(*value.borrow(), "sk-test-key", "the paste lands in the field");
+}
+
+#[test]
 fn a_track_number_adds_up_and_a_sign_adds_to_the_value_now() {
     let typed = super::relative_number;
     assert_eq!(typed("1200", 5.0), Some(1200.0));
