@@ -171,6 +171,18 @@ mod tests {
     }
 
     #[test]
+    fn the_unit_dialog_is_asked_on_the_home_screen_where_the_import_starts() {
+        let mut h = crate::scenario::Harness::new();
+        h.app.home.show(0);
+        h.frames(3);
+        // The Import tile of the start page: an STL states no unit, so it waits for the answer.
+        file_load::begin(&mut h.app, "part.stl", false);
+        h.frames(3);
+        assert!(h.app.home.open, "the start page stays open while the file waits");
+        assert!(crate::scenario::handle_at("mesh_units:ok").is_some(), "the dialog is asked on the start page too");
+    }
+
+    #[test]
     fn the_move_to_origin_checkbox_is_found_by_its_name() {
         let mut h = crate::scenario::Harness::new();
         assert!(ask(&mut h.app, "part.stl", true));
