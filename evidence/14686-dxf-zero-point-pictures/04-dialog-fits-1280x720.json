@@ -1,0 +1,263 @@
+{
+ "head": "a66b1c857ff25e2c4b653be863cfcbb55e898785",
+ "recorded_at": "2026-11-12T02:11:40+0100",
+ "app": "the web build of this PR's head, served over http from the dist dir",
+ "capture": "an X11 grab of the app's canvas at exactly 1280x720, cropped only the browser's infobar above the app; the real X pointer is drawn in",
+ "input": "the app's own control channel (the one the scenarios and the MCP bridge use): ui.handles to find a widget by name, ui.click to press it, ui.camera to pose the view",
+ "pictures": [
+  {
+   "file": "sc-pics-14686-v2-00-file-menu-export-dxf.png",
+   "what": "the File menu open, the real pointer on the row that opens the dialog ('Export Current View as DXF\u2026')"
+  },
+  {
+   "file": "sc-pics-14686-v2-04-dialog-fits-1280x720.png",
+   "what": "the DXF export dialog at exactly 1280x720"
+  },
+  {
+   "file": "sc-pics-14686-v2-04b-dialog-fits-1280x720-scrolled.png",
+   "what": "the same dialog scrolled to the bottom of its card"
+  },
+  {
+   "file": "sc-pics-14686-v2-03b-export-dialog-after-export.png",
+   "what": "the app right after the dialog's Export button was pressed"
+  },
+  {
+   "file": "sc-pics-14686-v2-03-resulting-export-dxf.png",
+   "what": "the exported DXF file itself, served over http and opened in a browser"
+  }
+ ],
+ "file_menu": {
+  "row_handle": "menu:Export Current View as DXF\u2026",
+  "row_position": [
+   266.40625,
+   569
+  ],
+  "pointer_at": [
+   163.40625,
+   569
+  ]
+ },
+ "dialog": {
+  "open": {
+   "command": "file.export_view_dxf",
+   "commands": [],
+   "editing": null,
+   "error": null,
+   "inputs": [],
+   "title": "Export Current View as DXF",
+   "waiting": null
+  }
+ },
+ "fit": {
+  "window_px": [
+   1280,
+   720
+  ],
+  "app_canvas_css_px": [
+   1279,
+   720,
+   1
+  ],
+  "dialog_widgets": {
+   "dialog:Cancel": [
+    1112.90625,
+    688
+   ],
+   "dialog:Export DXF\u2026": [
+    1203.953125,
+    688
+   ],
+   "dialog:cancel": [
+    1112.90625,
+    688
+   ],
+   "dialog:card": [
+    1140,
+    497
+   ],
+   "dialog:close": [
+    1249,
+    302
+   ],
+   "dialog:dxf:dashed": [
+    1140,
+    413
+   ],
+   "dialog:dxf:omit": [
+    1140,
+    380
+   ],
+   "dialog:dxf:tolerance": [
+    1178.84375,
+    608
+   ],
+   "dialog:dxf:zero_origin": [
+    1140,
+    506
+   ],
+   "dialog:dxf:zero_target": [
+    1140,
+    473
+   ],
+   "dialog:length:dxf.tolerance": [
+    1178.84375,
+    608
+   ],
+   "dialog:list:dashed": [
+    1140,
+    413
+   ],
+   "dialog:list:omit": [
+    1140,
+    380
+   ],
+   "dialog:list:zero_origin": [
+    1140,
+    506
+   ],
+   "dialog:list:zero_target": [
+    1140,
+    473
+   ],
+   "dialog:ok": [
+    1203.953125,
+    688
+   ],
+   "dialog:row:dxf.tolerance": [
+    1140,
+    608
+   ],
+   "dialog:title": [
+    1140,
+    302
+   ]
+  },
+  "every_dialog_widget_inside_window": true,
+  "widgets_outside_window": [],
+  "card_rect_px": {
+   "left": 1009,
+   "top": 280,
+   "right": 1270,
+   "bottom": 711,
+   "width": 262,
+   "height": 432,
+   "center": [
+    1140,
+    497
+   ]
+  },
+  "card_inside_window": true,
+  "card_bottom_margin_px": 9,
+  "card_right_margin_px": 10,
+  "card_body_scroll_px": {
+   "dialog:list:omit": 57,
+   "dialog:dxf:omit": 57,
+   "dialog:list:dashed": 57,
+   "dialog:dxf:dashed": 57,
+   "dialog:list:zero_target": 57,
+   "dialog:dxf:zero_target": 57,
+   "dialog:list:zero_origin": 57,
+   "dialog:dxf:zero_origin": 57,
+   "dialog:length:dxf.tolerance": 57,
+   "dialog:dxf:tolerance": 57,
+   "dialog:row:dxf.tolerance": 57
+  },
+  "card_body_scroll_max_px": 57,
+  "note": "the card fits the window; its body is a scroll area, so at 1280x720 the last note of the card is one scroll down (the card's content is taller than the card's window, as every dialog card in the app is)"
+ },
+ "export_status": {
+  "text": "Saved /downloads/Untitled-view.dxf"
+ },
+ "export": {
+  "file_written_by_the_dialog": "/home/user/Downloads/Untitled-view (5).dxf",
+  "bytes": 3970,
+  "sha256": "41179cf9f1e5948ba393db27dffdba368d6495f181409f886666981d4c808243",
+  "served_as": "/tmp/sc-web-dist-14686/export-sample.dxf",
+  "served_sha256": "41179cf9f1e5948ba393db27dffdba368d6495f181409f886666981d4c808243",
+  "engine_export_command": "file.export_view_dxf {camera, zero: origin}",
+  "engine_export_sha256": "41179cf9f1e5948ba393db27dffdba368d6495f181409f886666981d4c808243",
+  "identical_to_the_engine_export": true,
+  "entity_bounds": {
+   "min": [
+    0.0,
+    0.0
+   ],
+   "max": [
+    40.0,
+    30.001
+   ]
+  },
+  "exports_by_zero_point": {
+   "origin": {
+    "bytes": 3970,
+    "sha256": "41179cf9f1e5948ba393db27dffdba368d6495f181409f886666981d4c808243",
+    "entity_bounds": {
+     "min": [
+      0.0,
+      0.0
+     ],
+     "max": [
+      40.0,
+      30.001
+     ]
+    }
+   },
+   "target": {
+    "bytes": 4016,
+    "sha256": "a9491111db888b2e551ec43f3ab07eae9dd5bf96e32491c5109719d1ce46bac0",
+    "entity_bounds": {
+     "min": [
+      -20.0,
+      -15.0005
+     ],
+     "max": [
+      20.0,
+      15.0005
+     ]
+    }
+   }
+  },
+  "header_extents": [
+   "0",
+   "SECTION",
+   "2",
+   "HEADER",
+   "9",
+   "$ACADVER",
+   "1",
+   "AC1015",
+   "9",
+   "$DWGCODEPAGE",
+   "3",
+   "ANSI_1252",
+   "9",
+   "$HANDSEED",
+   "5",
+   "40",
+   "9",
+   "$INSUNITS",
+   "70",
+   "4",
+   "9",
+   "$MEASUREMENT",
+   "70",
+   "1",
+   "9",
+   "$EXTMIN",
+   "10",
+   "0.0",
+   "20",
+   "0.0",
+   "30",
+   "0.0",
+   "9",
+   "$EXTMAX",
+   "10",
+   "40.0",
+   "20",
+   "30.001000117867",
+   "30",
+   "0.0"
+  ]
+ }
+}
