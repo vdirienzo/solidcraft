@@ -3,7 +3,10 @@
 //! expression); `sketch.paste` adds an independent copy to the sketch being edited, at a point or
 //! offset from the original, as one undo step, and selects it. Constraints that reach outside
 //! the copied geometry (to the origin, to projected edges, to other curves) are left behind, as
-//! are fixes, so the pasted geometry can be moved straight away.
+//! are fixes, so the pasted geometry can be moved straight away. The relations that say how the
+//! copy is like the geometry it was copied from (equal, parallel, perpendicular) come along
+//! (#15664): the copy keeps them with that geometry, not with the copy it was made from, so
+//! copying a copy keeps them too.
 
 use std::collections::BTreeMap;
 
@@ -32,7 +35,7 @@ pub static COMMANDS: &[CommandSpec] = &[
         .enabled(in_sketch)
         .contract(&COPY_CONTRACT)
         .output(output_schema_for::<Copied>)
-        .params("entities?: [curve or point ids] (default: the selected sketch geometry); the constraints and dimensions among them come along"),
+        .params("entities?: [curve or point ids] (default: the selected sketch geometry); the constraints and dimensions among them come along, and so do the relations the copy has with the geometry left behind (equal, parallel, perpendicular)"),
     CommandSpec::new("sketch.cut", "Cut Sketch Entities", crate::checked!("sketch.cut", cut)).icon("cut")
         .enabled(in_sketch)
         .contract(&CUT_CONTRACT)
@@ -44,7 +47,7 @@ pub static COMMANDS: &[CommandSpec] = &[
         .contract(&PASTE_CONTRACT)
         .output(output_schema_for::<Pasted>)
         .params(
-        "at?: [x, y] (sketch point the copy's centre goes to) | translate?: [x, y]; without either, offset from the original in its own sketch and at the same coordinates in another; sketch?: target (default: the active sketch)",
+        "at?: [x, y] (sketch point the copy's centre goes to) | translate?: [x, y]; without either, offset from the original in its own sketch and at the same coordinates in another; sketch?: target (default: the active sketch); the relations the copy kept with the geometry it was copied from come along in that same sketch",
     ),
     CommandSpec::new("sketch.replace", "Replace Sketch", crate::checked!("sketch.replace", replace))
         .icon("sketch")
@@ -75,14 +78,52 @@ pub struct ClipConstraint {
     pub text: Option<Vec2>,
 }
 
+/// A relation the copy keeps with the geometry left behind (#15664): how the copy is like the
+/// shape it was copied from.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ClipRelationKind {
+    Equal,
+    Parallel,
+    Perpendicular,
+}
+
+impl ClipRelationKind {
+    /// The constraint this relation is, between the curves `a` and `b`.
+    fn constraint(self, a: usize, b: usize) -> ConstraintKind {
+        match self {
+            ClipRelationKind::Equal => ConstraintKind::Equal { a, b },
+            ClipRelationKind::Parallel => ConstraintKind::Parallel { a, b },
+            ClipRelationKind::Perpendicular => ConstraintKind::Perpendicular { a, b },
+        }
+    }
+}
+
+/// A relation of the clipboard between a copied curve and a curve left behind (#15664).
+#[derive(Clone, Debug)]
+pub struct ClipRelation {
+    /// What the relation says.
+    pub kind: ClipRelationKind,
+    /// The copied curve the relation is on: an index into [`SketchClip::curves`].
+    pub inside: usize,
+    /// The curve left behind the relation is with, by its id in the sketch it was copied from.
+    pub outside: String,
+}
+
 /// Sketch geometry copied with `sketch.copy`, in the sketch coordinates it was copied from.
 #[derive(Clone, Debug, Default)]
 pub struct SketchClip {
-    /// The sketch it was copied from.
+    /// The sketch the copy is placed relative to: a paste without a position steps away from
+    /// the original in it. `u64::MAX` when the copy has no place any more (a cut, or a copy
+    /// for another design).
     pub sketch: u64,
+    /// The sketch the geometry was copied from: the relations the copy keeps mean nothing
+    /// anywhere else, so they are made again only when the copy goes back to it.
+    pub source: u64,
     pub points: Vec<Vec2>,
     pub curves: Vec<ClipCurve>,
     pub constraints: Vec<ClipConstraint>,
+    /// The relations the copy keeps with the geometry left behind (#15664).
+    pub relations: Vec<ClipRelation>,
     /// Text sources (their outlines are made again on paste). A path, when kept, is the index of
     /// a clipboard curve.
     pub texts: Vec<(LinkSource, Option<usize>)>,
@@ -111,7 +152,10 @@ impl SketchClip {
     pub fn for_another_design(&self) -> SketchClip {
         let mut clip = self.clone();
         clip.sketch = u64::MAX;
+        clip.source = u64::MAX;
         clip.pastes = 0;
+        // The relations name curves of the design the copy came from: they mean nothing here.
+        clip.relations.clear();
         for c in &mut clip.constraints {
             let Some((expr, unit)) = c.param.as_mut() else { continue };
             if solidcraft_doc::expr::references(expr).is_empty() {
@@ -190,7 +234,7 @@ fn clip_of(doc: &Document, sk: &Sketch, id: u64, ids: &[String], whole: bool, cm
             return Err(bad(cmd, format!("unknown sketch entity `{e}`")));
         }
     }
-    let mut clip = SketchClip { sketch: id, ..Default::default() };
+    let mut clip = SketchClip { sketch: id, source: id, ..Default::default() };
     // Points: those of the copied curves, then the lone ones, each once.
     let mut pmap: BTreeMap<usize, usize> = BTreeMap::new();
     if whole && let Some(o) = sk.points.iter().position(|q| q.id == ORIGIN) {
@@ -238,6 +282,30 @@ fn clip_of(doc: &Document, sk: &Sketch, id: u64, ids: &[String], whole: bool, cm
         });
         clip.constraints.push(ClipConstraint { kind, param, driven: c.driven, text: c.text });
     }
+    // The relations the copy keeps with the geometry left behind (#15664): how the copy is like
+    // the shape it was copied from. The relations that place the copy (coincidence, tangency,
+    // collinearity, a dimension) stay behind, so the copy is free to move.
+    for c in &sk.constraints {
+        let (kind, a, b) = match c.kind {
+            ConstraintKind::Equal { a, b } => (ClipRelationKind::Equal, a, b),
+            ConstraintKind::Parallel { a, b } => (ClipRelationKind::Parallel, a, b),
+            ConstraintKind::Perpendicular { a, b } => (ClipRelationKind::Perpendicular, a, b),
+            _ => continue,
+        };
+        // The relation comes along when it is with geometry left behind: one side in the copy,
+        // the other out of it. A relation among copied curves came along above.
+        let (inside, outside) = match (cmap.get(&a), cmap.get(&b)) {
+            (Some(i), None) => (*i, b),
+            (None, Some(i)) => (*i, a),
+            _ => continue,
+        };
+        let Some(cu) = sk.curves.get(outside) else { continue };
+        // A text outline is drawn again on paste: the relation to it would not hold.
+        if text_of(sk, outside).is_some() {
+            continue;
+        }
+        clip.relations.push(ClipRelation { kind, inside, outside: cu.id.clone() });
+    }
     for t in &texts {
         let Some(mut src) = sk.link(t).map(|l| l.source.clone()) else { continue };
         let LinkSource::Text { style, .. } = &mut src else { continue };
@@ -274,7 +342,7 @@ fn clip_of(doc: &Document, sk: &Sketch, id: u64, ids: &[String], whole: bool, cm
         curves: clip.curves.len() + texts.iter().map(|t| sk.link_curves(t).len()).sum::<usize>(),
         points: clip.lone.len(),
         texts: texts.len(),
-        constraints: clip.constraints.len(),
+        constraints: clip.constraints.len() + clip.relations.len(),
         center: [clip.center.x, clip.center.y],
         param_warnings: Vec::new(),
     };
@@ -322,8 +390,13 @@ fn paste(s: &mut Session, p: &Value) -> Result<Value> {
     if !(p.is_object() || p.is_null()) {
         return Err(bad(cmd, "params must be an object"));
     }
-    let Some(clip) = s.sketch_clipboard.clone() else { return Err(bad(cmd, "nothing copied (sketch.copy first)")) };
+    let Some(mut clip) = s.sketch_clipboard.clone() else { return Err(bad(cmd, "nothing copied (sketch.copy first)")) };
     let target = sketch_store::target(s, p, cmd)?;
+    // The relations name curves of the sketch the copy came from: they mean nothing in another
+    // sketch, where those ids are other curves.
+    if target != clip.source {
+        clip.relations.clear();
+    }
     let positioned = p.get("at").is_some() || p.get("translate").is_some();
     let t = if let Some(v) = p.get("at") {
         vec2(v).ok_or_else(|| bad(cmd, "`at` must be [x, y]"))? - clip.center
@@ -400,7 +473,7 @@ fn replace(s: &mut Session, p: &Value) -> Result<Value> {
         Some(Value::String(f)) if !f.trim().is_empty() => Some(f.clone()),
         Some(_) => return Err(bad(cmd, "`file` must be the path of a design file")),
     };
-    let clip = match &file {
+    let mut clip = match &file {
         Some(path) => {
             let (other, _) =
                 solidcraft_io::read_design_file(path, None::<fn(solidcraft_io::DesignPreview)>).map_err(|e| bad(cmd, format!("{path}: {e}")))?;
@@ -415,6 +488,9 @@ fn replace(s: &mut Session, p: &Value) -> Result<Value> {
             whole_clip(&s.doc, source, cmd)?
         }
     };
+    // The relations name curves of the sketch the contents came from: they mean nothing in the
+    // sketch that takes them.
+    clip.relations.clear();
     let ((curves, points, constraints), info) = edit(s, &json!({ "sketch": target }), cmd, false, |sk, doc| {
         let old: Vec<String> = sk.constraints.iter().filter_map(|c| c.param.clone()).collect();
         // Emptied, but its id counters kept: the new contents' ids carry on from the old ones, so
@@ -493,6 +569,15 @@ fn paste_clip(sk: &mut Sketch, doc: &mut Document, clip: &SketchClip, t: Vec2) -
             nc.driven = c.driven;
             nc.text = c.text;
         }
+        cons.push(id);
+    }
+    // The relations the copy keeps with the geometry left behind (#15664): the copy is like the
+    // shape it was copied from. The curve left behind is the one the relation was made with, so
+    // copying a copy keeps the relation too.
+    for r in &clip.relations {
+        let Some(&inside) = made.get(r.inside) else { continue };
+        let Some(outside) = sk.curve_index(&r.outside) else { continue };
+        let Ok(id) = sk.add_constraint(r.kind.constraint(inside, outside), None) else { continue };
         cons.push(id);
     }
     let mut curve_ids: Vec<String> = made.iter().filter_map(|i| sk.curves.get(*i).map(|c| c.id.clone())).collect();

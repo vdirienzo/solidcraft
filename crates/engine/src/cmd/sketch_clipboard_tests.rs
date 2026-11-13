@@ -22,6 +22,19 @@ fn pos(sk: &Sketch, curve: &str) -> Vec<Vec2> {
     c.kind.point_ids().iter().map(|i| sk.point(*i).unwrap()).collect()
 }
 
+/// The curves an `Equal` constraint on `curve` is with (#15664).
+fn equal_with(sk: &Sketch, curve: &str) -> Vec<String> {
+    let Some(c) = sk.curve_index(curve) else { return Vec::new() };
+    sk.constraints
+        .iter()
+        .filter_map(|k| match k.kind {
+            ConstraintKind::Equal { a, b } if a == c => sk.curves.get(b).map(|x| x.id.clone()),
+            ConstraintKind::Equal { a, b } if b == c => sk.curves.get(a).map(|x| x.id.clone()),
+            _ => None,
+        })
+        .collect()
+}
+
 /// A sketch on XY with a dimensioned, constrained rectangle tied to the origin, a circle with a
 /// diameter, an arc, a spline and a point.
 fn drawing() -> (Session, Vec<String>, String) {
@@ -92,6 +105,58 @@ fn copy_paste_keeps_internal_constraints_and_dimensions_and_drops_outside_ones()
     };
     assert!((span(&rect[0]) - 20.0).abs() < 1e-6 && (span(&rect[1]) - 10.0).abs() < 1e-6);
     assert!(pasted[..4].iter().any(|c| (span(c) - 30.0).abs() < 1e-6), "{:?}", pasted.iter().map(|c| span(c)).collect::<Vec<_>>());
+}
+
+/// A copy keeps the relations it has with the geometry left behind (#15664): the copy is like
+/// the shape it was copied from, so it stays equal to that shape, and copying the copy keeps
+/// the relation too.
+#[test]
+fn copy_keeps_the_relations_with_the_geometry_left_behind() {
+    let mut s = Session::default();
+    run(&mut s, "sketch.create", json!({"plane": "XY"}));
+    let a = strs(&run(&mut s, "sketch.rectangle.two_point", json!({"p0": [0, 0], "p1": [20, 10]}))["curves"]);
+    let b = strs(&run(&mut s, "sketch.rectangle.two_point", json!({"p0": [40, 0], "p1": [60, 10]}))["curves"]);
+    let sid = s.active_sketch.unwrap();
+    // The same rectangle copied apart: its own constraints are the same ones.
+    let alone = run(&mut s, "sketch.copy", json!({"entities": a}));
+    // The second rectangle is equal to the first one.
+    run(&mut s, "sketch.constraint.equal", json!({"a": b[0], "b": a[0]}));
+    assert_eq!(equal_with(sketch(&s, sid), &b[0]), vec![a[0].clone()]);
+
+    // Copying it: the equality comes along, with the rectangle it was made with.
+    let copied = run(&mut s, "sketch.copy", json!({"entities": b}));
+    assert_eq!(copied["constraints"].as_u64(), alone["constraints"].as_u64().map(|n| n + 1), "the equality is counted among the copy's constraints");
+    let pasted = strs(&run(&mut s, "sketch.paste", json!({}))["curves"]);
+    let sk = sketch(&s, sid);
+    assert_eq!(equal_with(sk, &pasted[0]), vec![a[0].clone()], "the copy is equal to the rectangle left behind");
+    // The original keeps its equality: the copy is not equal to it.
+    assert_eq!(equal_with(sk, &b[0]), vec![a[0].clone()]);
+
+    // Copying the copy: it is equal to the same rectangle, not to the copy it came from.
+    run(&mut s, "sketch.copy", json!({"entities": pasted}));
+    let pasted2 = strs(&run(&mut s, "sketch.paste", json!({}))["curves"]);
+    let sk = sketch(&s, sid);
+    assert_eq!(equal_with(sk, &pasted2[0]), vec![a[0].clone()], "the copy of the copy is equal to the same rectangle");
+}
+
+/// The relations name the curves of the sketch the copy came from: pasted into another sketch,
+/// they mean nothing there, so they stay behind (#15664).
+#[test]
+fn a_copy_pasted_into_another_sketch_leaves_its_relations_behind() {
+    let mut s = Session::default();
+    run(&mut s, "sketch.create", json!({"plane": "XY", "name": "A"}));
+    let a = strs(&run(&mut s, "sketch.rectangle.two_point", json!({"p0": [0, 0], "p1": [20, 10]}))["curves"]);
+    let b = strs(&run(&mut s, "sketch.rectangle.two_point", json!({"p0": [40, 0], "p1": [60, 10]}))["curves"]);
+    run(&mut s, "sketch.constraint.equal", json!({"a": b[0], "b": a[0]}));
+    run(&mut s, "sketch.copy", json!({"entities": b}));
+    run(&mut s, "sketch.finish", json!({}));
+    run(&mut s, "sketch.create", json!({"plane": "XZ", "name": "B"}));
+    let other = s.active_sketch.unwrap();
+    let out = run(&mut s, "sketch.paste", json!({}));
+    let sk = sketch(&s, other);
+    let pasted = strs(&out["curves"]);
+    assert_eq!(pasted.len(), 4);
+    assert!(equal_with(sk, &pasted[0]).is_empty(), "{:?}", equal_with(sk, &pasted[0]));
 }
 
 #[test]
