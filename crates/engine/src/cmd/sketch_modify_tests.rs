@@ -5977,3 +5977,21 @@ fn an_unlinked_offset_says_its_parameter_drives_nothing() {
     assert!(r["param"].is_string(), "{r}");
     assert!(r.get("warning").is_none(), "{r}");
 }
+
+/// #16164: a point a sketch projects from the geometry it was drawn on, or one it holds fixed,
+/// cannot be moved. The refusal names the point and says which of the two it is.
+#[test]
+fn the_move_of_a_projected_or_fixed_point_says_which_one_it_is() {
+    let mut s = Session::default();
+    run(&mut s, "sketch.create", json!({"plane": "XY"}));
+    run(&mut s, "sketch.polygon.inscribed", json!({"center": [0, 0], "radius": 20, "sides": 8}));
+    let curves: Vec<String> = sketch(&s).curves.iter().map(|c| c.id.clone()).collect();
+    run(&mut s, "solid.extrude", json!({"profile": curves, "distance": 10}));
+    run(&mut s, "sketch.create", json!({"plane": {"face": [0, 0, 10]}, "name": "OnTop"}));
+    // The corners of the face come into the sketch as projected points: they follow the solid.
+    let e = s.execute("sketch.move", &json!({"entities": ["p8"], "translate": [6.0, 0.0], "angle": 0.0, "copy": false})).unwrap_err().to_string();
+    assert!(e.contains("point `p8` is projected and cannot move"), "{e}");
+    // The origin is fixed by the sketch itself.
+    let e = s.execute("sketch.move", &json!({"entities": ["origin"], "translate": [6.0, 0.0]})).unwrap_err().to_string();
+    assert!(e.contains("point `origin` is fixed and cannot move"), "{e}");
+}
