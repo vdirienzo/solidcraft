@@ -313,6 +313,7 @@ pub const DOCUMENTED: &[&str] = &[
     "timeline.dependents",
     "timeline.play",
     "view.apply",
+    "view.browser",
     "view.delete",
     "view.fit",
     "view.grid",
