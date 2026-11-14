@@ -51,15 +51,7 @@ fn follows_view(app: &SolveApp) -> bool {
 /// window's flag is the fallback for a layout that has no Browser instance yet.
 pub(crate) fn panel_open(app: &SolveApp) -> bool {
     app.panel_runtime()
-        .and_then(|runtime| {
-            runtime
-                .layout()
-                .layout()
-                .instances
-                .iter()
-                .find(|panel| panel.id.0 == "browser")
-                .map(|panel| panel.requested_open)
-        })
+        .and_then(|runtime| runtime.layout().layout().instances.iter().find(|panel| panel.id.0 == "browser").map(|panel| panel.requested_open))
         .unwrap_or(app.ui.show_browser)
 }
 

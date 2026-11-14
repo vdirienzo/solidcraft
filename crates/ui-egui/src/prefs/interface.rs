@@ -604,9 +604,8 @@ fn browser_tree_check(ui: &mut egui::Ui, app: &mut SolveApp, label: &str, help: 
             ui_kit::row(ui, "", |ui| {
                 ui.spacing_mut().item_spacing.x = t.space_6;
                 let check_width = (ui.available_width() - t.space_16 - t.space_6).max(0.0);
-                let response = ui_kit::settings_control_width(ui, check_width, |ui| {
-                    ui_kit::checkbox(ui, label, &mut visible).backing_on_hover_text(help)
-                });
+                let response =
+                    ui_kit::settings_control_width(ui, check_width, |ui| ui_kit::checkbox(ui, label, &mut visible).backing_on_hover_text(help));
                 crate::scenario::publish_target("prefs:browser_tree", response.rect);
                 ui_kit::help_icon(ui, help);
                 if response.changed() {
