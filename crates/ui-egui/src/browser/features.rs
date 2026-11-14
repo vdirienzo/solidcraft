@@ -454,6 +454,9 @@ fn feature_row(
     let (component, path) = (here.component, here.path);
     let (id, label, icon) = (feature.id, feature.name.clone(), crate::timeline::icon_of(&feature.kind));
     let is_sketch = matches!(feature.kind, FeatureKind::Sketch { .. });
+    // A construction plane, axis or point: shown or hidden by its name, like its row in the
+    // Construction folder.
+    let is_construction = feature.kind.is_construction();
     let sketch = crate::timeline::TimelineKind::of(&feature.kind).profile_sketch();
     // Behind the history marker or suppressed: not built, drawn faint as in the timeline.
     let dim = feature.suppressed || app.session.doc.marker.is_some_and(|marker| index >= marker);
@@ -469,9 +472,17 @@ fn feature_row(
     let action = sketch.map(|_| ("sketch", "Edit Profile Sketch"));
     // A sketch row has the eye its Sketches folder row has. A feature's eye shows and hides the
     // bodies it made (#5099); a component listed on its own stands for all of its placements.
+    // A construction plane, axis or point shows and hides itself, with the eye its Construction
+    // folder row has (#16560).
     let placement = (component == 0 || !path.is_empty()).then_some((component, path));
-    let (has_bodies, visible) = if is_sketch { (false, crate::browser::sketch_visible(app, id)) } else { made_bodies_shown(app, id, placement) };
-    let eye = (is_sketch || has_bodies).then_some(visible);
+    let (has_bodies, visible) = if is_sketch {
+        (false, crate::browser::sketch_visible(app, id))
+    } else if is_construction {
+        (false, !app.session.visibility.hidden_origin.contains(&label))
+    } else {
+        made_bodies_shown(app, id, placement)
+    };
+    let eye = (is_sketch || has_bodies || is_construction).then_some(visible);
     let status = match current_model(app) {
         Some(model) => model.status(app, id),
         None => crate::timeline::feature_status(app, id),
@@ -502,6 +513,9 @@ fn feature_row(
     );
     if r.eye && is_sketch {
         crate::browser::set_sketch_visible(app, id, !visible);
+    } else if r.eye && is_construction {
+        // The construction geometry is shown or hidden by its name, as in the Construction folder.
+        let _ = app.run("browser.visibility", json!({ "items": [&label], "visible": !visible }));
     } else if r.eye {
         let mut p = json!({"visible": !visible, "features": [id]});
         if !path.is_empty() {
@@ -1687,6 +1701,28 @@ mod tests {
         h.step(&json!({"click": {"handle": "eye:Two"}})).unwrap();
         h.frames(2);
         assert!(!shown(&h), "and hides it again");
+    }
+
+    /// #16560: with the history in the browser, a construction plane's row in the History has
+    /// the eye its Construction folder row has: it shows and hides the plane.
+    #[test]
+    fn browser_history_construction_rows_have_an_eye() {
+        let mut h = Harness::new();
+        h.app.run("view.history_layout", json!({"dock":"browser"})).unwrap();
+        assert!(h.app.preferences.history_in_browser, "the history is in the browser");
+        let made = h.app.run("construct.plane.offset", json!({"base":"XY","offset":10,"name":"Plane1"})).unwrap();
+        let id = made["feature"].as_u64().unwrap();
+        let hidden = |h: &Harness| h.app.session.visibility.hidden_origin.iter().any(|n| n == "Plane1");
+        h.frames(2);
+        let row = crate::scenario::handle_at(&format!("row:browser-feature:c0:{id}")).unwrap();
+        let eye = crate::scenario::handle_at("eye:Plane1").unwrap();
+        assert!((eye.y - row.y).abs() < 2.0, "the eye is on the plane's history row");
+        h.step(&json!({"click": {"handle": "eye:Plane1"}})).unwrap();
+        h.frames(2);
+        assert!(hidden(&h), "its eye hides the plane");
+        h.step(&json!({"click": {"handle": "eye:Plane1"}})).unwrap();
+        h.frames(2);
+        assert!(!hidden(&h), "and shows it again");
     }
 
     /// #8592: a feature that failed has an error mark in the browser's history, one that built
