@@ -984,6 +984,24 @@ fn a_sketch_on_a_face_of_an_imported_spline_body_meshes_nothing_more() {
 }
 
 #[test]
+fn tmp_repro_16784() {
+    let mut s = Session::default();
+    run(&mut s, "sketch.create", json!({"plane": "XZ", "name": "Tri"}));
+    run(&mut s, "sketch.line", json!({"points": [[0, 0], [40, 0], [20, 30], [0, 0]], "ids": ["l1", "l2", "l3"]}));
+    run(&mut s, "sketch.finish", json!({}));
+    run(&mut s, "surface.extrude", json!({"sketch": "Tri", "curves": ["l1", "l2", "l3"], "distance": 30, "body_name": "Sheet"}));
+    run(&mut s, "surface.thicken", json!({"bodies": ["Sheet"], "thickness": 2, "symmetric": true, "body_name": "Slab"}));
+    for body in &s.model.state().bodies {
+        println!("body {} faces {}", body.name, body.body.face_count());
+        for i in 0..body.body.face_count() {
+            println!("  face {i}: {:?} {:?}", body.body.face_plane(i), body.body.face_sources().and_then(|s| s.get(i)).cloned());
+        }
+    }
+    let made = s.execute("sketch.create", &json!({"plane": {"face": [20.0, 15.0, 0.0]}, "name": "OnFace"}));
+    println!("result: {made:?}");
+}
+
+#[test]
 fn top_of_a_block_with_a_modeled_thread_and_rounded_corners_keeps_its_attachment() {
     // A modeled thread cuts thousands of facets into the bore. Its splitting planes must not
     // leave the block's walls and corner edges in pieces: a corner round of such an edge loses
