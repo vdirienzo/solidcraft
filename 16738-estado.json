@@ -1,0 +1,224 @@
+{
+ "prefijo": "16738",
+ "puerto": 27931,
+ "pasos": [
+  {
+   "tag": "hover-pick",
+   "hover": {
+    "id": "l5",
+    "point": [
+     -16.78069552874379,
+     5.280000341711776,
+     20.0
+    ],
+    "sketch": 2,
+    "straight": true,
+    "type": "sketch_curve"
+   }
+  },
+  {
+   "tag": "hover-shift",
+   "hover": {
+    "id": "n7",
+    "point": [
+     -8.436220999555209,
+     14.94651558022945,
+     20.0
+    ],
+    "sketch": 2,
+    "straight": false,
+    "type": "sketch_curve"
+   }
+  },
+  {
+   "tag": "selection-after-click",
+   "count": 23,
+   "curve_ids": [
+    "l5",
+    "l6",
+    "l7",
+    "l8",
+    "n1",
+    "n10",
+    "n11",
+    "n12",
+    "n13",
+    "n14",
+    "n15",
+    "n16",
+    "n17",
+    "n18",
+    "n19",
+    "n2",
+    "n3",
+    "n4",
+    "n5",
+    "n6",
+    "n7",
+    "n8",
+    "n9"
+   ]
+  },
+  {
+   "tag": "selection-after-shift",
+   "count": 22,
+   "curve_ids": [
+    "l5",
+    "l6",
+    "l7",
+    "l8",
+    "n1",
+    "n10",
+    "n11",
+    "n12",
+    "n13",
+    "n14",
+    "n15",
+    "n16",
+    "n17",
+    "n18",
+    "n19",
+    "n2",
+    "n3",
+    "n4",
+    "n5",
+    "n6",
+    "n8",
+    "n9"
+   ]
+  }
+ ],
+ "capturas": [
+  {
+   "name": "16738-01-text-picked-whole.png",
+   "path": "/home/user/.hermes/cache/scratch/evidence-16738/16738-01-text-picked-whole.png",
+   "ok": true,
+   "bytes": 227777
+  },
+  {
+   "name": "16738-02-shift-one-outline-out.png",
+   "path": "/home/user/.hermes/cache/scratch/evidence-16738/16738-02-shift-one-outline-out.png",
+   "ok": true,
+   "bytes": 227923
+  }
+ ],
+ "outlines": [
+  "l5",
+  "l6",
+  "l7",
+  "l8",
+  "n1",
+  "n10",
+  "n11",
+  "n12",
+  "n13",
+  "n14",
+  "n15",
+  "n16",
+  "n17",
+  "n18",
+  "n19",
+  "n2",
+  "n3",
+  "n4",
+  "n5",
+  "n6",
+  "n7",
+  "n8",
+  "n9"
+ ],
+ "camera": {
+  "distance": 55.0,
+  "fov": 0.0,
+  "pitch": 1.5707953267948966,
+  "roll": 0.0,
+  "target": [
+   -0.8119233498935419,
+   12.008516678495386,
+   20.0
+  ],
+  "up": "z",
+  "yaw": 0.0
+ },
+ "viewport": [
+  0.0,
+  34.0,
+  1280.0,
+  686.0
+ ],
+ "pick": {
+  "curve": "l5",
+  "sketch": [
+   -16.78069552874379,
+   5.28
+  ],
+  "screen": [
+   391.0323181152344,
+   481.9036865234375
+  ]
+ },
+ "shift": {
+  "curve": "n7",
+  "sketch": [
+   -8.655784244144783,
+   14.99
+  ],
+  "screen": [
+   517.7070922851562,
+   330.5159606933594
+  ]
+ },
+ "seleccion_tras_el_click": [
+  "l5",
+  "l6",
+  "l7",
+  "l8",
+  "n1",
+  "n10",
+  "n11",
+  "n12",
+  "n13",
+  "n14",
+  "n15",
+  "n16",
+  "n17",
+  "n18",
+  "n19",
+  "n2",
+  "n3",
+  "n4",
+  "n5",
+  "n6",
+  "n7",
+  "n8",
+  "n9"
+ ],
+ "seleccion_tras_shift": [
+  "l5",
+  "l6",
+  "l7",
+  "l8",
+  "n1",
+  "n10",
+  "n11",
+  "n12",
+  "n13",
+  "n14",
+  "n15",
+  "n16",
+  "n17",
+  "n18",
+  "n19",
+  "n2",
+  "n3",
+  "n4",
+  "n5",
+  "n6",
+  "n8",
+  "n9"
+ ],
+ "texto_entero_elegido": true,
+ "una_silueta_fuera": true,
+ "letter_picked": "l5",
+ "outline_taken_out": "n7"
+}
