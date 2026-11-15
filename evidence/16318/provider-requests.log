@@ -1,0 +1,8 @@
+--- POST #1 /v1/chat/completions
+    user: make a gearbox housing
+--- POST #2 /v1/chat/completions
+    user: [The previous attempt was cut short before it finished. Continue the task from where it stopped.]\n\nmake a gearbox housing
+    user: make a gearbox housing
+--- POST #3 /v1/chat/completions
+    user: [The previous attempt was cut short before it finished. Continue the task from where it stopped.]\n\nmake a gearbox housing
+    user: make a gearbox housing
