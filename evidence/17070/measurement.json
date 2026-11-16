@@ -1,0 +1,99 @@
+{
+ "issue": 17070,
+ "pull_request": 17609,
+ "head": "d11a9519cb2b314160fdb9f73b192af67d492dd6",
+ "app_version": "0.43.0",
+ "built_with": "cargo build --profile ci -p solidcraft (and -p solidcraft-cli) at the head above",
+ "how_the_question_was_produced": {
+  "mechanism": "a real ACP agent process: it speaks the Agent Client Protocol over stdin/stdout and answers the app's prompt with its own question (elicitation/create), so the card is produced by the protocol path the change adds, not by a mock of the panel",
+  "agent": "a stand-in ACP agent: initialize, session/new, then elicitation/create on the prompt (the exchange is in agent-protocol-form.log and agent-protocol-link.log)",
+  "how_the_app_was_driven": "the app's own control channel (docs/control-protocol.md): ui.agent_chat {add_agent, agent, connect, open, send}, ui.resize {1280, 720} and ui.screenshot",
+  "window": "1280x720 (the app's own ui.screenshot of the whole window) and 960x600 (the smallest window the app allows)"
+ },
+ "pictures": [
+  {
+   "file": "01-question-with-choices.png",
+   "mode": "form",
+   "window": "1280x720",
+   "pixels": [
+    1280,
+    720
+   ],
+   "bytes": 428947,
+   "sha256": "61f178a1b67a8dc53627ac2a77b108c0982d6b8b10bb31f2cafedcec1166e4c5",
+   "what_it_shows": "The question card in the Assistant panel: the agent's own question, a button per choice (conservative, balanced, aggressive), and Decline and Cancel next to them.",
+   "question_text": "Which approach should I take for the bracket?",
+   "buttons": [
+    "Cancel",
+    "Decline",
+    "aggressive",
+    "balanced",
+    "conservative"
+   ],
+   "link": null,
+   "answer_given": null
+  },
+  {
+   "file": "02-link-question.png",
+   "mode": "link",
+   "window": "1280x720",
+   "pixels": [
+    1280,
+    720
+   ],
+   "bytes": 441426,
+   "sha256": "5045e7b05d1037d59f4611f2991b4b1ce7388fad9a54a6a7e326af80e85ec915",
+   "what_it_shows": "The link question in the Assistant panel: the agent's own question, the address in full, and its Open button, plus Decline and Cancel.",
+   "question_text": "Open this page to let the agent connect to your account.",
+   "buttons": [
+    "Cancel",
+    "Decline",
+    "Open"
+   ],
+   "link": "https://agent.example.com/oauth/authorize?client_id=solidcraft&scope=design%20read%20write&state=7f3c1d",
+   "answer_given": null
+  },
+  {
+   "file": "03-question-with-choices-small-window.png",
+   "mode": "form",
+   "window": "960x600",
+   "pixels": [
+    960,
+    600
+   ],
+   "bytes": 287004,
+   "sha256": "503112bfd222c2d0ecb9f49b11368f44264874f0d20d39b246ba79f486c22328",
+   "what_it_shows": "The same question card in the smallest window the app allows (960x600): it fits, nothing overflows and nothing overlaps.",
+   "question_text": "Which approach should I take for the bracket?",
+   "buttons": [
+    "Cancel",
+    "Decline",
+    "aggressive",
+    "balanced",
+    "conservative"
+   ],
+   "link": null,
+   "answer_given": null
+  },
+  {
+   "file": "04-link-question-small-window.png",
+   "mode": "link",
+   "window": "960x600",
+   "pixels": [
+    960,
+    600
+   ],
+   "bytes": 288404,
+   "sha256": "0fc10b86cd062daec470f0f84088d57c4db3ac51c4b096fe6a6399c1b9ec6fe5",
+   "what_it_shows": "The same link question in the smallest window the app allows (960x600): the address and the Open button fit, nothing overflows and nothing overlaps.",
+   "question_text": "Open this page to let the agent connect to your account.",
+   "buttons": [
+    "Cancel",
+    "Decline",
+    "Open"
+   ],
+   "link": "https://agent.example.com/oauth/authorize?client_id=solidcraft&scope=design%20read%20write&state=7f3c1d",
+   "answer_given": null
+  }
+ ]
+}
