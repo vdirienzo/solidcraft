@@ -29,6 +29,21 @@ const CANCEL_GRACE: Duration = Duration::from_secs(5);
 /// would otherwise reach the agent and outrank the chat endpoint's own token file.
 const ENV_REMOVE: &[&str] = &["SOLIDCRAFT_CONTROL_TOKEN"];
 
+/// How much of the agent's own words are kept next to SolidCraft's explanation.
+const ERROR_DETAIL_CAP: usize = 600;
+
+/// Say what happened when the agent could not read a tool call the model streamed in pieces
+/// (#17667): the agent answers with a schema dump, so name the failure, say what to do, and keep
+/// the raw text for the bug report.
+fn explain(message: String) -> String {
+    if !acp::rejects_tool_call(&message) {
+        return message;
+    }
+    let hint = solidcraft_ui_text::tr("ui.agent_chat_tool_call_rejected");
+    let detail: String = message.chars().take(ERROR_DETAIL_CAP).collect();
+    format!("{hint}\n\n{detail}")
+}
+
 pub struct AcpBackend {
     proc: AgentProcess,
     cwd: std::path::PathBuf,
@@ -190,7 +205,7 @@ impl AcpBackend {
                             if what == Pending::Prompt {
                                 out.push(Event::TurnEnded { reason: "error".into() });
                             }
-                            out.push(Event::Error(message));
+                            out.push(Event::Error(explain(message)));
                         }
                     }
                 }
@@ -514,6 +529,25 @@ mod tests {
         backend.set_model("zzz");
         backend.handle(Incoming::Reply { id: backend.next_id, result: Err((acp::AUTH_REQUIRED, "sign in".into())) }, &mut events);
         assert!(matches!(events.as_slice(), [Event::AuthRequired { .. }]), "{events:?}");
+        backend.shutdown(true);
+    }
+
+    /// #17667: the agent's schema dump is replaced by a hint the user can act on, and the raw text
+    /// stays for the bug report.
+    #[test]
+    fn a_tool_call_the_agent_could_not_read_is_explained() {
+        crate::i18n::install();
+        let dump = r#"Internal error: Type validation failed: Value: {"id":"ccbef87774644807bac4185c4c25b33b","object":"chat.completion.chunk","created":1794795961,"model":"deepseek-v4-1-flash-1017","choices":[{"index":0,"delta":{"tool_calls":[{"function":{"name":"","arguments":"{\"filter\": \"material\"}","index":0}],"index":0,"content":""}],"finish_reason":null}]}. Error message: [ { "expected": "string", "code": "invalid_type", "path": ["choices",0,"delta","tool_calls",0,"id"], "message": "Invalid input: expected string, received undefined" } ]"#;
+        let mut backend = ready_backend().unwrap();
+        backend.prompt(&[PromptPart::Text("find a material command".into())]);
+        let request = backend.next_id;
+        let mut events = Vec::new();
+        backend.handle(Incoming::Reply { id: request, result: Err((-32603, dump.into())) }, &mut events);
+        let Some(Event::Error(message)) = events.iter().find(|e| matches!(e, Event::Error(_))) else {
+            panic!("the agent's refusal must be reported: {events:?}");
+        };
+        assert!(message.starts_with(solidcraft_ui_text::tr("ui.agent_chat_tool_call_rejected")), "{message}");
+        assert!(message.contains("tool_calls"), "the agent's own words stay for the bug report: {message}");
         backend.shutdown(true);
     }
 }

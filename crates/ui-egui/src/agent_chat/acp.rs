@@ -661,6 +661,22 @@ fn update(u: &Value, session: &str) -> Incoming {
     }
 }
 
+/// Whether the agent's error is its provider refusing a tool call the model streamed in pieces.
+///
+/// Some providers send a tool call across several chunks and only the first one carries the
+/// call's `id`. An agent that checks every chunk against a strict schema then fails with a type
+/// error about `tool_calls[..].id` instead of reading the call (#17667). SolidCraft cannot repair
+/// the agent's reader, but it can name the failure instead of showing a raw schema dump.
+pub fn rejects_tool_call(message: &str) -> bool {
+    let text = message.to_ascii_lowercase();
+    let tool_call = text.contains("tool_call") || text.contains("toolcall");
+    let type_error = text.contains("type validation failed")
+        || text.contains("typevalidationerror")
+        || text.contains("invalid_type")
+        || text.contains("invalid type");
+    tool_call && type_error
+}
+
 /// The answer to a permission request: the option picked, or `None` for "cancelled".
 pub fn permission_reply(rpc: Value, option: Option<&str>) -> Value {
     let outcome = match option {
@@ -1007,5 +1023,20 @@ mod tests {
         assert_eq!(config_options(&json!({})), ConfigParse::Absent);
         assert_eq!(config_options(&json!({"configOptions":null})), ConfigParse::Invalid);
         assert_eq!(config_options(&json!({"configOptions":[{"type":"select","id":"broken"}]})), ConfigParse::Invalid);
+    }
+
+    /// #17667: the agent answers with a schema dump when the model streams a tool call in pieces
+    /// and only the first chunk carries the call's `id`.
+    #[test]
+    fn a_tool_call_the_agent_could_not_read_is_told_apart_from_other_failures() {
+        let dump = r#"Internal error: Type validation failed: Value: {"id":"ccbef87774644807bac4185c4c25b33b","object":"chat.completion.chunk","created":1794795961,"model":"deepseek-v4-1-flash-1017","choices":[{"index":0,"delta":{"tool_calls":[{"function":{"name":"","arguments":"{\"filter\": \"material\"}","index":0}],"index":0,"content":""}],"finish_reason":null}]}. Error message: [ { "expected": "string", "code": "invalid_type", "path": ["choices",0,"delta","tool_calls",0,"id"], "message": "Invalid input: expected string, received undefined" } ]"#;
+        assert!(rejects_tool_call(dump));
+        // The same failure in the spelling an agent that names its chunks differently uses.
+        assert!(rejects_tool_call("TypeValidationError: toolCalls[0].id is required"));
+        // A type error without a tool call, and a tool call without a type error, are other
+        // failures: the agent's own words are the only news then.
+        assert!(!rejects_tool_call("Type validation failed: expected string, received undefined"));
+        assert!(!rejects_tool_call("the model asked for a tool that does not exist"));
+        assert!(!rejects_tool_call(""));
     }
 }

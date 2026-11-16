@@ -1,0 +1,26 @@
+{
+  "en": {
+    "ui.agent_chat_tool_call_rejected": "The agent could not read the model's tool call: the model sent it in pieces and the provider's reply did not match what the agent expects. Update the agent to a newer version, or choose a model that sends whole tool calls, then ask again."
+  },
+  "ar": {
+    "ui.agent_chat_tool_call_rejected": "لم يستطع الوكيل قراءة استدعاء الأدوات الذي أرسله النموذج: أرسله النموذج على أجزاء، ولم يطابق رد المزوّد ما يتوقّعه الوكيل. حدّث الوكيل إلى إصدار أحدث، أو اختر نموذجًا يرسل استدعاءات الأدوات كاملة، ثم أعد السؤال."
+  },
+  "de": {
+    "ui.agent_chat_tool_call_rejected": "Der Agent konnte den Werkzeugaufruf des Modells nicht lesen: Das Modell hat ihn in Teilen gesendet, und die Antwort des Anbieters passte nicht zu dem, was der Agent erwartet. Aktualisieren Sie den Agenten auf eine neuere Version oder wählen Sie ein Modell, das vollständige Werkzeugaufrufe sendet, und fragen Sie dann erneut."
+  },
+  "he": {
+    "ui.agent_chat_tool_call_rejected": "הסוכן לא הצליח לקרוא את קריאת הכלים של המודל: המודל שלח אותה בחלקים, ותשובת הספק לא תאמה את מה שהסוכן מצפה. יש לעדכן את הסוכן לגרסה חדשה יותר, או לבחור מודל ששולח קריאות כלי שלמות, ואז לשאול שוב."
+  },
+  "ja": {
+    "ui.agent_chat_tool_call_rejected": "エージェントはモデルのツール呼び出しを読み取れませんでした。モデルがツール呼び出しを分割して送り、プロバイダーの応答がエージェントの期待と一致しませんでした。エージェントを新しいバージョンに更新するか、ツール呼び出しをまとめて送るモデルを選んでから、もう一度依頼してください。"
+  },
+  "ko": {
+    "ui.agent_chat_tool_call_rejected": "에이전트가 모델의 도구 호출을 읽지 못했습니다. 모델이 도구 호출을 나누어 보냈고 공급자의 응답이 에이전트가 기대한 것과 맞지 않습니다. 에이전트를 새 버전으로 업데이트하거나 도구 호출을 통째로 보내는 모델을 선택한 다음 다시 요청하세요."
+  },
+  "vi": {
+    "ui.agent_chat_tool_call_rejected": "AI Agent không đọc được lệnh gọi công cụ của mô hình: mô hình gửi lệnh đó theo nhiều phần và câu trả lời của nhà cung cấp không khớp với điều AI Agent mong đợi. Hãy cập nhật AI Agent lên phiên bản mới hơn, hoặc chọn mô hình gửi lệnh gọi công cụ trọn vẹn, rồi hỏi lại."
+  },
+  "zh": {
+    "ui.agent_chat_tool_call_rejected": "智能体无法读取模型的工具调用：模型分块发送了该调用，提供商的回复与智能体的预期不符。请将智能体更新到较新的版本，或选择会完整发送工具调用的模型，然后重新提问。"
+  }
+}
