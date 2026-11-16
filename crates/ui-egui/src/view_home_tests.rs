@@ -738,3 +738,33 @@ fn orbit_up_to_the_top_view_and_around_keeps_one_pivot() {
         assert!(std::f64::consts::FRAC_PI_2 - h.app.cam.pitch < 1e-3, "{case}: the drag reached the top view");
     }
 }
+
+#[test]
+fn scratch_repro_home_off_centre() {
+    let mut h = Harness::new();
+    h.app.home.open = false;
+    h.app.ui.show_browser = true;
+    h.settle();
+    let rect = h.app.viewport.rect.unwrap();
+    println!("host frame: {}", h.app.universal_panel_frame().is_some());
+    println!("viewport {rect:?}");
+    println!("browser {:?}", h.app.shell.browser);
+    println!("workspace panels {:?}", h.app.shell.workspace_panels);
+    let layout = h.app.viewport.layout.as_ref().unwrap();
+    println!("middle {:?}", layout.middle);
+    println!("drawable {:?}", layout.drawable);
+    println!("content {:?}", layout.content);
+    println!("axis {:?}", layout.axis_view);
+    println!("nav {:?}", layout.navigation);
+    println!("usable {:?}", layout.usable);
+    h.app.animate_view("home");
+    h.settle();
+    let layout = h.app.viewport.layout.as_ref().unwrap();
+    let bounds = crate::viewport::view_bounds(&h.app);
+    println!("bounds {bounds:?}");
+    let fc = crate::viewport_layout::framing_centre(h.app.cam, &bounds, layout).unwrap();
+    println!("framing_centre {fc:?}");
+    let proj = crate::viewport::projection(&h.app, rect);
+    let at = proj.to_screen(bounds.center()).unwrap();
+    println!("model at {at:?} (viewport rect {rect:?})");
+}
