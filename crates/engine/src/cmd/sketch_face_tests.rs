@@ -938,6 +938,19 @@ fn a_flat_side_of_a_three_section_loft_takes_a_sketch_and_an_extrude() {
     assert!((added - area).abs() < 1e-6 * area, "{added} vs {area}");
 }
 
+/// A sketch on a face of a mirrored copy of a body: the copy's faces carry the seed's
+/// certificate, and the copy is named after it.
+#[test]
+fn a_sketch_takes_a_face_of_a_mirrored_copy() {
+    let mut s = Session::default();
+    run(&mut s, "solid.box", json!({"length":10,"width":10,"height":10,"body_name":"Block"}));
+    let reply = run(&mut s, "solid.mirror", json!({"bodies":["Block"],"plane":{"origin":[30,0,0],"normal":[1,0,0]}}));
+    let copy = reply["created_bodies"][0].as_str().unwrap().to_string();
+    let pick = top_pick(&s, &copy);
+    let id = run(&mut s, "sketch.create", json!({"name":"OnCopy","plane":pick}))["sketch"].as_u64().unwrap();
+    assert!(s.doc.sketch(id).unwrap().links.iter().any(|link| link.auto_face));
+}
+
 /// Attaching a sketch to a flat face of a large imported body with many B-spline faces meshed
 /// the whole body twice, at a tenth of the chord the model meshes it at, to find where the point
 /// lies: tens of seconds a click. The capture reads the model's own mesh of the body, which a
