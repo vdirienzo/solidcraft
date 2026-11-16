@@ -1,0 +1,107 @@
+{
+ "prefijo": "before",
+ "puerto": 27901,
+ "pasos": [
+  {
+   "tag": "antes-del-orbit",
+   "cam": {
+    "distance": 81.62654134915824,
+    "fov": 0.0,
+    "pitch": 0.6154797086703874,
+    "roll": 0.0,
+    "target": [
+     3.09292046487437,
+     8.154055195863204,
+     20.06113473098884
+    ],
+    "up": "z",
+    "yaw": -0.7853981633974483
+   },
+   "centro_caja": [
+    816.4439086914062,
+    506.447998046875
+   ]
+  },
+  {
+   "tag": "screenshot",
+   "name": "before-zoom-pan.png",
+   "ok": true
+  },
+  {
+   "tag": "despues-del-orbit",
+   "cam": {
+    "distance": 81.62654134915824,
+    "fov": 0.0,
+    "pitch": 0.8554797086703874,
+    "roll": 0.0,
+    "target": [
+     3.343129076503857,
+     8.584295873341933,
+     19.839407368518852
+    ],
+    "up": "z",
+    "yaw": -0.3053981633974483
+   },
+   "centro_caja": [
+    827.1509399414062,
+    435.9853515625
+   ]
+  },
+  {
+   "tag": "screenshot",
+   "name": "before-after-the-orbit.png",
+   "ok": true
+  }
+ ],
+ "viewport": [
+  0.0,
+  34.0,
+  1280.0,
+  686.0
+ ],
+ "centro_caja_encuadre": [
+  640.0,
+  391.5
+ ],
+ "centro_caja_tras_el_zoom": [
+  646.4439086914062,
+  396.447998046875
+ ],
+ "centro_caja_antes_del_orbit": [
+  816.4439086914062,
+  506.447998046875
+ ],
+ "centro_caja_despues_del_orbit": [
+  827.1509399414062,
+  435.9853515625
+ ],
+ "desplazamiento_pixeles": 71.27148846327317,
+ "gesto": {
+  "rueda": {
+   "x": 500.0,
+   "y": 284.0,
+   "delta": 30.0
+  },
+  "desplazamiento": {
+   "x0": 300.0,
+   "y0": 334.0,
+   "x1": 470.0,
+   "y1": 444.0,
+   "boton": "medio",
+   "pasos": 6
+  },
+  "orbit": {
+   "x0": 300.0,
+   "y0": 334.0,
+   "x1": 360.0,
+   "y1": 364.0,
+   "boton": "medio",
+   "shift": true,
+   "pasos": 10
+  }
+ },
+ "tamano_imagen": [
+  1280,
+  720
+ ]
+}
