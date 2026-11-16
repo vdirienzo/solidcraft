@@ -990,6 +990,135 @@ fn a_sketch_on_a_face_of_an_imported_spline_body_meshes_nothing_more() {
     assert!(off.is_err(), "{off:?}");
 }
 
+/// Try a sketch on every planar face of every body, and report the ones refused, with the
+/// internal reason the anchor capture gave.
+fn probe_all_faces(label: &str, s: &mut Session) {
+    let state = s.model.state();
+    let bodies: Vec<(String, Vec<(usize, solidcore_record::Plane)>)> = state
+        .bodies
+        .iter()
+        .map(|b| {
+            let faces = (0..b.body.face_count())
+                .filter_map(|index| b.body.planar_face(index).map(|plane| (index, plane)))
+                .collect();
+            (b.name.clone(), faces)
+        })
+        .collect();
+    for (body_name, faces) in bodies {
+        for (index, plane) in faces {
+            let st = s.model.state();
+            let Some(body) = st.bodies.iter().find(|b| b.name == body_name) else { continue };
+            let internal = match s.doc.capture_face_anchor(body, index, &plane, &[], 0, &[]) {
+                Ok(_) => "ok".to_string(),
+                Err(error) => error.to_string(),
+            };
+            if internal != "ok" {
+                println!("  !! {label} body={body_name} index={index} internal: {internal}");
+            }
+            let pick = json!({"body":body_name,"index":index,"face":[plane.origin.x,plane.origin.y,plane.origin.z]});
+            if let Err(error) = s.execute("sketch.create", &json!({"name":"P","plane":pick})) {
+                println!("  -- {label} body={body_name} index={index} engine: {error}");
+            } else {
+                let _ = s.execute("sketch.finish", json!({}));
+            }
+        }
+    }
+    let state = s.model.state();
+    for b in &state.bodies {
+        let exact: Vec<bool> = (0..b.body.face_count())
+            .map(|i| solidcraft_doc::naming::face_name_exact(b, i))
+            .collect();
+        println!("  {label} body {} exact={exact:?} names={:?}", b.name, solidcraft_doc::naming::face_names(b));
+    }
+}
+
+#[test]
+fn probe_mirror_scenarios() {
+    let mk_extrude = |s: &mut Session| {
+        run(s, "sketch.create", json!({"plane":"XY","name":"S"}));
+        run(s, "sketch.rectangle.two_point", json!({"p0":[0,0],"p1":[10,10]}));
+        run(s, "sketch.finish", json!({}));
+        run(s, "solid.extrude", json!({"distance":10,"name":"Block"}));
+    };
+    // P1: mirror the EXTRUDE FEATURE (the "mirrored extrusion" of the issue title).
+    {
+        let mut s = Session::default();
+        mk_extrude(&mut s);
+        let reply = s.execute("solid.mirror", &json!({"features":["Block"],"plane":{"origin":[0,0,0],"normal":[1,0,0]}}));
+        println!("P1 feature mirror reply: {reply:?}");
+        probe_all_faces("P1 feature mirror", &mut s);
+    }
+    // P2: mirror the extrude feature about a plane beside it (a separate copy).
+    {
+        let mut s = Session::default();
+        mk_extrude(&mut s);
+        let reply = s.execute("solid.mirror", &json!({"features":["Block"],"plane":{"origin":[30,0,0],"normal":[1,0,0]}}));
+        println!("P2 feature mirror reply: {reply:?}");
+        probe_all_faces("P2 feature mirror separate", &mut s);
+    }
+    // P3: mirror a body that has a hole (a bore is a curved face of the copy).
+    {
+        let mut s = Session::default();
+        mk_extrude(&mut s);
+        run(&mut s, "solid.hole", json!({"position":[5,5,10],"diameter":4,"depth":10}));
+        let reply = s.execute("solid.mirror", &json!({"bodies":["Body1"],"plane":{"origin":[30,0,0],"normal":[1,0,0]}}));
+        println!("P3 holed body mirror reply: {reply:?}");
+        probe_all_faces("P3 holed body mirror", &mut s);
+    }
+    // P4: mirror a body that has a fillet.
+    {
+        let mut s = Session::default();
+        mk_extrude(&mut s);
+        run(&mut s, "solid.fillet", json!({"edges":[[0,0,10]],"radius":2,"name":"Round"}));
+        let reply = s.execute("solid.mirror", &json!({"bodies":["Body1"],"plane":{"origin":[30,0,0],"normal":[1,0,0]}}));
+        println!("P4 filleted body mirror reply: {reply:?}");
+        probe_all_faces("P4 filleted body mirror", &mut s);
+    }
+    // P5: mirror a body COMBINED with its copy (one body holding both).
+    {
+        let mut s = Session::default();
+        mk_extrude(&mut s);
+        let reply = s.execute("solid.mirror", &json!({"bodies":["Body1"],"plane":{"origin":[10,0,0],"normal":[1,0,0]},"combine":true}));
+        println!("P5 combined mirror reply: {reply:?}");
+        probe_all_faces("P5 combined mirror", &mut s);
+    }
+    // P6: mirror the extrude feature, then a second mirror of the copy.
+    {
+        let mut s = Session::default();
+        mk_extrude(&mut s);
+        let reply = s.execute("solid.mirror", &json!({"bodies":["Body1"],"plane":{"origin":[30,0,0],"normal":[1,0,0]}}));
+        println!("P6 first mirror reply: {reply:?}");
+        let reply = s.execute("solid.mirror", &json!({"bodies":["Body1 (2)"],"plane":{"origin":[60,0,0],"normal":[1,0,0]}}));
+        println!("P6 second mirror reply: {reply:?}");
+        probe_all_faces("P6 copy of a copy", &mut s);
+    }
+    // P7: a body built of two extrudes joined, then mirrored.
+    {
+        let mut s = Session::default();
+        mk_extrude(&mut s);
+        run(&mut s, "sketch.create", json!({"plane":{"face":[10,5,10]},"name":"S2"}));
+        run(&mut s, "sketch.rectangle.two_point", json!({"p0":[0,0],"p1":[5,5]}));
+        run(&mut s, "sketch.finish", json!({}));
+        run(&mut s, "solid.extrude", json!({"sketch":"S2","distance":5,"operation":"join","name":"Boss"}));
+        let reply = s.execute("solid.mirror", &json!({"bodies":["Body1"],"plane":{"origin":[30,0,0],"normal":[1,0,0]}}));
+        println!("P7 joined body mirror reply: {reply:?}");
+        probe_all_faces("P7 joined body mirror", &mut s);
+    }
+}
+
+/// A sketch on a face of a mirrored copy of a body: the copy's faces carry the seed's
+/// certificate, and the copy is named after it.
+#[test]
+fn a_sketch_takes_a_face_of_a_mirrored_copy() {
+    let mut s = Session::default();
+    run(&mut s, "solid.box", json!({"length":10,"width":10,"height":10,"body_name":"Block"}));
+    let reply = run(&mut s, "solid.mirror", json!({"bodies":["Block"],"plane":{"origin":[30,0,0],"normal":[1,0,0]}}));
+    let copy = reply["created_bodies"][0].as_str().unwrap().to_string();
+    let pick = top_pick(&s, &copy);
+    let id = run(&mut s, "sketch.create", json!({"name":"OnCopy","plane":pick}))["sketch"].as_u64().unwrap();
+    assert!(s.doc.sketch(id).unwrap().links.iter().any(|link| link.auto_face));
+}
+
 #[test]
 fn top_of_a_block_with_a_modeled_thread_and_rounded_corners_keeps_its_attachment() {
     // A modeled thread cuts thousands of facets into the bore. Its splitting planes must not
