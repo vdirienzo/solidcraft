@@ -812,3 +812,48 @@ fn long_growth_chains_are_not_starved() {
         assert!(s.pos[*q].is_some_and(|at| at.dist(o + u * (20.0 + 3.0 * j as f64)) < 1e-9), "point {j}: {s:?}");
     }
 }
+
+/// A circle tangent to both sides of a corner stays inside the corner when an edge
+/// length dimension is assigned or changed.
+#[test]
+fn circle_tangent_to_corner_stays_inside_on_edge_length_edit() {
+    let side = |sk: &Sketch, l: usize, p: Vec2| {
+        let (a, b) = sk.curves[l].kind.ends().unwrap();
+        let (a, b) = (sk.points[a].pos, sk.points[b].pos);
+        (b - a).cross(p - a).signum()
+    };
+
+    // Dimension changed on an edge of the corner.
+    {
+        let mut sk = Sketch::new();
+        let p0 = sk.add_point(v(0.0, 0.0), None).unwrap();
+        let p1 = sk.add_point(v(0.0, 20.0), None).unwrap();
+        let p2 = sk.add_point(v(20.0, 0.0), None).unwrap();
+        let l1 = sk.add_line_pts(p1, p0, None).unwrap();
+        let l2 = sk.add_line_pts(p1, p2, None).unwrap();
+        push(&mut sk, ConstraintKind::Fix { p: p0 });
+        push(&mut sk, ConstraintKind::Fix { p: p2 });
+        let len1_val = sk.points[p1].pos.dist(sk.points[p0].pos);
+        let len2_val = sk.points[p1].pos.dist(sk.points[p2].pos);
+        let len1 = push(&mut sk, ConstraintKind::Length { l: l1, value: len1_val });
+        push(&mut sk, ConstraintKind::Length { l: l2, value: len2_val });
+        let c = sk.add_circle(v(8.0, 8.0), 3.0, None, None).unwrap();
+        push(&mut sk, ConstraintKind::Tangent { a: l1, b: c });
+        push(&mut sk, ConstraintKind::Tangent { a: l2, b: c });
+        push(&mut sk, ConstraintKind::Radius { c, value: 3.0 });
+        let rep = solve(&mut sk);
+        assert!(rep.ok(), "{rep:?}");
+        let centre = sk.center(c).unwrap();
+        let (s1, s2) = (side(&sk, l1, centre), side(&sk, l2, centre));
+        eprintln!("before: centre={centre:?} s1={s1} s2={s2} p1={:?}", sk.points[p1].pos);
+
+        let new_len = sk.constraints[len1].kind.value().unwrap() * 0.6;
+        sk.constraints[len1].kind.set_value(new_len);
+        let rep = solve(&mut sk);
+        eprintln!("after change: {rep:?} centre={:?} p1={:?} s1={} s2={}", sk.center(c), sk.points[p1].pos, side(&sk,l1,sk.center(c).unwrap()), side(&sk,l2,sk.center(c).unwrap()));
+        assert!(rep.ok() && rep.folded.is_empty(), "change: {rep:?}");
+        let centre = sk.center(c).unwrap();
+        assert_eq!(side(&sk, l1, centre), s1, "change moved circle outside l1: {centre:?} {rep:?}");
+        assert_eq!(side(&sk, l2, centre), s2, "change moved circle outside l2: {centre:?} {rep:?}");
+    }
+}
