@@ -135,3 +135,71 @@ fn the_seed_places_the_centre_by_construction() {
         assert!(sk.points[ci].pos.dist(want) < 1e-9, "{:?}", sk.points[ci].pos);
     }
 }
+
+#[test]
+fn tmp_repro_circle_in_angle_stays_inside_when_a_line_is_dimensioned() {
+    // The angle: bottom line from a fixed point A to the vertex B, slanted line from B up to a
+    // fixed point C. The circle is tangent to both, inside.
+    let build = |l0: f64| {
+        let mut sk = Sketch::new();
+        let a = v(0.0, 0.0);
+        let b = v(l0, 0.0);
+        let c = v(33.0, 200.0);
+        let l1 = sk.add_line(a, b, None, None, None).unwrap();
+        let l2 = sk.add_line(b, c, None, None, None).unwrap();
+        let (a1, b1) = sk.curves[l1].kind.ends().unwrap();
+        let (a2, b2) = sk.curves[l2].kind.ends().unwrap();
+        sk.add_constraint(ConstraintKind::Coincident { p: b1, q: a2 }, None).unwrap();
+        let cir = sk.add_circle(v(0.0, 0.0), 10.0, None, None).unwrap();
+        let CurveKind::Circle { c: ci, .. } = sk.curves[cir].kind else { panic!() };
+        sk.points[ci].pos = v(0.0, 0.0);
+        sk.add_constraint(ConstraintKind::Radius { c: cir, value: 10.0 }, None).unwrap();
+        sk.add_constraint(ConstraintKind::Tangent { a: l1, b: cir }, None).unwrap();
+        sk.add_constraint(ConstraintKind::Tangent { a: l2, b: cir }, None).unwrap();
+        sk.add_constraint(ConstraintKind::Fix { p: a1 }, None).unwrap();
+        sk.add_constraint(ConstraintKind::Fix { p: b2 }, None).unwrap();
+        (sk, l1, l2, cir, ci, b1)
+    };
+    for (l0, ln) in [(110.0_f64, 60.0_f64), (100.0, 60.0), (80.0, 60.0), (60.0, 110.0), (110.0, 100.0)] {
+        let (mut sk, l1, _l2, _cir, ci, _b1) = build(l0);
+        // Place the centre at radius 10 from both lines, inside: y=10 and the slant's side of A.
+        let (p0, p1) = (sk.points[sk.curves[l1].kind.ends().unwrap().0].pos, sk.points[sk.curves[l1].kind.ends().unwrap().1].pos);
+        let l2e = sk.curves[1].kind.ends().unwrap();
+        let (q0, q1) = (sk.points[l2e.0].pos, sk.points[l2e.1].pos);
+        let d = (q1 - q0).normalized().unwrap();
+        let n = v(-d.y, d.x);
+        // Choose the centre 10 above the bottom line on the side of the slant that holds A.
+        let sgn = if n.cross(p0 - q0) < 0.0 { -1.0 } else { 1.0 };
+        let line_off = q0 + n * sgn * 10.0;
+        // Along the slanted line's normal, at distance 10, pick the point at y=10.
+        let m = v(-d.y, d.x) * sgn;
+        let _ = (p0, p1, line_off, m);
+        // Solve for the centre from the two line distances using a small 2x2 solve.
+        let (n1, n2) = (v(0.0, 1.0), { let dir = (q1 - q0).normalized().unwrap(); let nn = v(-dir.y, dir.x); if nn.cross(v(0.0, 0.0) - q0) > 0.0 { nn } else { -nn } });
+        // centre = p0 + 10*n1 + t*dir1 ... simpler: centre y=10, slant distance 10.
+        let dir = (q1 - q0).normalized().unwrap();
+        // (q1-q0) x (centre-q0) = +-10*len
+        let want = 10.0 * (q1 - q0).len();
+        let s = if n2.cross(p0 - q0) > 0.0 { 1.0 } else { -1.0 };
+        // solve x: dir.x*(10) - dir.y*(x-0) = s*want/len ... use cross formula numerically
+        // cross = dir.x*(10-q0.y) - dir.y*(x-q0.x)
+        let x = (dir.x * (10.0 - q0.y) + dir.y * q0.x - s * 10.0) / dir.y;
+        sk.points[ci].pos = v(x, 10.0);
+        let mut rep = solve(&mut sk);
+        let (s1, s2) = (side_of(&sk, l1, ci), side_of(&sk, 1, ci));
+        eprintln!("L0 {l0} -> {ln}: first solve {rep:?} centre {:?} sides {s1} {s2}", sk.points[ci].pos);
+        assert!(rep.ok(), "{rep:?}");
+        let before = (s1, s2);
+        sk.add_constraint(ConstraintKind::Length { l: l1, value: ln }, None).unwrap();
+        rep = solve(&mut sk);
+        let (t1, t2) = (side_of(&sk, l1, ci), side_of(&sk, 1, ci));
+        eprintln!("  after Length {ln}: {rep:?} centre {:?} sides {t1} {t2}", sk.points[ci].pos);
+        assert!(rep.ok(), "{rep:?}");
+        assert_eq!(before, (t1, t2), "L0 {l0} -> {ln}: circle flipped: {:?}", sk.points[ci].pos);
+    }
+}
+
+fn side_of(sk: &Sketch, l: usize, ci: usize) -> f64 {
+    let (a, b) = sk.curves[l].kind.ends().unwrap();
+    (sk.points[b].pos - sk.points[a].pos).cross(sk.points[ci].pos - sk.points[a].pos).signum()
+}
