@@ -2157,6 +2157,78 @@ fn meet_lines(sk: &mut Sketch, p: &Value, cmd: &str) -> Result<()> {
     Ok(())
 }
 
+/// What a corner command works on, in the words of its refusal (#9178): a fillet rounds a line
+/// or an arc, a chamfer cuts two lines.
+fn corner_accepts(cmd: &str) -> &'static str {
+    if cmd == "sketch.fillet" { "fillets work on lines and arcs" } else { "chamfers work on two lines" }
+}
+
+/// Whether a corner command can work on a curve kind: a fillet rounds a line or an arc, a
+/// chamfer cuts two lines (#9178).
+fn corner_takes(cmd: &str, kind: &CurveKind) -> bool {
+    match kind {
+        CurveKind::Line { .. } => true,
+        CurveKind::Arc { .. } => cmd == "sketch.fillet",
+        _ => false,
+    }
+}
+
+/// The kind of a curve in words, for a refusal that names it (#9178).
+fn curve_kind_words(kind: &CurveKind) -> &'static str {
+    match kind {
+        CurveKind::Line { .. } => "a line",
+        CurveKind::Arc { .. } => "an arc",
+        CurveKind::Circle { .. } => "a circle",
+        CurveKind::Ellipse { .. } => "an ellipse",
+        CurveKind::Spline { .. } => "a spline",
+        CurveKind::Conic { .. } => "a conic",
+    }
+}
+
+/// A refusal naming the curves a corner command cannot work on (#9178): what the command works
+/// on, and each curve it cannot.
+fn refuse_curves(cmd: &str, sk: &Sketch, curves: &[usize]) -> String {
+    let named: Vec<String> =
+        curves.iter().filter_map(|i| sk.curves.get(*i).map(|c| format!("`{}` is {}", c.id, curve_kind_words(&c.kind)))).collect();
+    format!("{}: {}", corner_accepts(cmd), named.join(" and "))
+}
+
+/// The points where a curve can be met by another: its ends, a spline's fit points, an ellipse's
+/// major axis end (#9178).
+fn curve_meet_points(kind: &CurveKind) -> Vec<usize> {
+    match kind {
+        CurveKind::Spline { pts, control, .. } => {
+            if *control {
+                pts.first().into_iter().chain(pts.last()).copied().collect()
+            } else {
+                pts.clone()
+            }
+        }
+        CurveKind::Ellipse { m, .. } => vec![*m],
+        _ => kind.ends().map(|(a, b)| vec![a, b]).unwrap_or_default(),
+    }
+}
+
+/// The first curve at point `q` that a corner command cannot work on (#9178): the conic, spline
+/// or ellipse that meets there, by the point itself or by where it lies.
+fn unusable_at(sk: &Sketch, q: usize, cmd: &str) -> Option<usize> {
+    let qp = sk.point(q)?;
+    (0..sk.curves.len()).find(|i| {
+        let Some(c) = sk.curves.get(*i) else { return false };
+        if sk.is_linked_curve(*i) || c.construction || corner_takes(cmd, &c.kind) {
+            return false;
+        }
+        curve_meet_points(&c.kind).iter().any(|p| *p == q || sk.point(*p).is_some_and(|x| x.dist(qp) <= 1e-6 * (1.0 + qp.len())))
+    })
+}
+
+/// The refusal of a corner command for the curves it cannot work on (#9178): what the command
+/// works on, and each curve it cannot. None when it can work on all of them.
+fn corner_refusal(sk: &Sketch, cmd: &str, curves: &[usize]) -> Option<String> {
+    let unusable: Vec<usize> = curves.iter().copied().filter(|i| sk.curves.get(*i).is_some_and(|c| !corner_takes(cmd, &c.kind))).collect();
+    if unusable.is_empty() { None } else { Some(refuse_curves(cmd, sk, &unusable)) }
+}
+
 /// A corner of two lines: (line a, line b, corner point, far end of a, far end of b).
 fn corner(sk: &Sketch, p: &Value, cmd: &str) -> Result<(usize, usize, usize, usize, usize)> {
     let ends = |l: usize| match sk.curves.get(l).map(|c| &c.kind) {
@@ -2175,7 +2247,14 @@ fn corner(sk: &Sketch, p: &Value, cmd: &str) -> Result<(usize, usize, usize, usi
             if lines.len() == 2 { lines } else { lines.into_iter().filter(|i| sk.curves.get(*i).is_some_and(|c| !c.construction)).collect() };
         match sides[..] {
             [a, b] => (a, b),
-            _ => return Err(bad(cmd, "the corner must join exactly two lines (or give the two lines as `a` and `b`)")),
+            // The corner is not two lines: a conic, a spline or an ellipse meets there, and the
+            // command cannot work on it, so the refusal names it (#9178).
+            _ => {
+                return Err(match unusable_at(sk, q, cmd) {
+                    Some(i) => bad(cmd, refuse_curves(cmd, sk, &[i])),
+                    None => bad(cmd, "the corner must join exactly two lines (or give the two lines as `a` and `b`)"),
+                });
+            }
         }
     } else {
         let a = str_(p, "a").and_then(|i| sk.curve_index(i)).ok_or_else(|| bad(cmd, "`a` must be a line"))?;
@@ -2183,10 +2262,15 @@ fn corner(sk: &Sketch, p: &Value, cmd: &str) -> Result<(usize, usize, usize, usi
         if sk.is_ellipse_axis(a) || sk.is_ellipse_axis(b) {
             return Err(bad(cmd, "an ellipse's axis is not a side of a corner"));
         }
+        // The command cannot work on a conic, a spline or an ellipse: the refusal names it
+        // (#9178). A fillet works on an arc, which the round corner path takes later.
+        if let Some(refusal) = corner_refusal(sk, cmd, &[a, b]) {
+            return Err(bad(cmd, refusal));
+        }
         (a, b)
     };
-    let (a0, a1) = ends(la).ok_or_else(|| bad(cmd, "fillets and chamfers work on two lines"))?;
-    let (b0, b1) = ends(lb).ok_or_else(|| bad(cmd, "fillets and chamfers work on two lines"))?;
+    let (a0, a1) = ends(la).ok_or_else(|| bad(cmd, "the curves must share a corner point"))?;
+    let (b0, b1) = ends(lb).ok_or_else(|| bad(cmd, "the curves must share a corner point"))?;
     let shared = [a0, a1].into_iter().find(|x| *x == b0 || *x == b1).ok_or_else(|| bad(cmd, "the lines must share a corner point"))?;
     let fa = if a0 == shared { a1 } else { a0 };
     let fb = if b0 == shared { b1 } else { b0 };

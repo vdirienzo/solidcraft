@@ -2766,6 +2766,69 @@ fn fillet_a_line_and_an_arc_drawn_to_meet_at_a_point() {
     }
 }
 
+/// #9178: a fillet refused on a corner a conic meets names the conic it cannot round, instead of
+/// saying only that the corner is not of two lines.
+#[test]
+fn fillet_of_two_conics_meeting_at_a_point_names_the_conic() {
+    let mut s = new_sketch();
+    run(&mut s, "sketch.conic", json!({"start": [0, 0], "end": [20, 0], "apex": [10, 10]}));
+    run(&mut s, "sketch.conic", json!({"start": "n1.end", "end": [40, 0], "apex": [30, 10]}));
+    let e = s.execute("sketch.fillet", &json!({"point": "n1.end", "radius": 2})).unwrap_err().to_string();
+    assert!(e.contains("fillets work on lines and arcs") && e.contains("`n1` is a conic"), "{e}");
+}
+
+/// #9178: naming the two curves the corner is of says which of them the command cannot work on.
+#[test]
+fn fillet_of_two_conics_named_as_a_and_b_names_them() {
+    let mut s = new_sketch();
+    run(&mut s, "sketch.conic", json!({"start": [0, 0], "end": [20, 0], "apex": [10, 10]}));
+    run(&mut s, "sketch.conic", json!({"start": "n1.end", "end": [40, 0], "apex": [30, 10]}));
+    let e = s.execute("sketch.fillet", &json!({"a": "n1", "b": "n2", "radius": 2})).unwrap_err().to_string();
+    assert!(e.contains("fillets work on lines and arcs") && e.contains("`n1` is a conic") && e.contains("`n2` is a conic"), "{e}");
+}
+
+/// #9178: a line and a conic meeting at a point: the fillet names the conic.
+#[test]
+fn fillet_of_a_line_and_a_conic_at_a_point_names_the_conic() {
+    let mut s = new_sketch();
+    run(&mut s, "sketch.line", json!({"points": [[0, 0], [20, 0]]}));
+    run(&mut s, "sketch.conic", json!({"start": "l1.end", "end": [40, 0], "apex": [30, 10]}));
+    let e = s.execute("sketch.fillet", &json!({"point": "l1.end", "radius": 2})).unwrap_err().to_string();
+    assert!(e.contains("fillets work on lines and arcs") && e.contains("`n1` is a conic"), "{e}");
+}
+
+/// #9178: a line and a spline meeting at a point: the fillet names the spline.
+#[test]
+fn fillet_of_a_line_and_a_spline_at_a_point_names_the_spline() {
+    let mut s = new_sketch();
+    run(&mut s, "sketch.line", json!({"points": [[0, 0], [20, 0]]}));
+    run(&mut s, "sketch.spline.fit_point", json!({"points": ["l1.end", [40, 0], [60, 10]]}));
+    let e = s.execute("sketch.fillet", &json!({"point": "l1.end", "radius": 2})).unwrap_err().to_string();
+    assert!(e.contains("fillets work on lines and arcs") && e.contains("`s1` is a spline"), "{e}");
+}
+
+/// #9178: a chamfer refused on a conic says chamfers work on two lines, and names the conic.
+#[test]
+fn chamfer_of_a_line_and_a_conic_at_a_point_names_the_conic() {
+    let mut s = new_sketch();
+    run(&mut s, "sketch.line", json!({"points": [[0, 0], [20, 0]]}));
+    run(&mut s, "sketch.conic", json!({"start": "l1.end", "end": [40, 0], "apex": [30, 10]}));
+    let e = s.execute("sketch.chamfer.equal_distance", &json!({"point": "l1.end", "distance": 2})).unwrap_err().to_string();
+    assert!(e.contains("chamfers work on two lines") && e.contains("`n1` is a conic"), "{e}");
+}
+
+/// A fillet of two lines still rounds the corner (#9178 changed only the refusals).
+#[test]
+fn fillet_of_two_lines_still_rounds_the_corner() {
+    let mut s = new_sketch();
+    run(&mut s, "sketch.line", json!({"points": [[0, 0], [40, 0]], "ids": ["l1"]}));
+    run(&mut s, "sketch.line", json!({"points": ["l1.end", [40, 30]], "ids": ["l2"]}));
+    let f = run(&mut s, "sketch.fillet", json!({"point": "l1.end", "radius": 5}));
+    let sk = sketch(&s);
+    let ai = sk.curve_index(&ids(&f["curves"])[0]).unwrap();
+    assert!((sk.radius(ai).unwrap() - 5.0).abs() < 1e-7);
+}
+
 /// #7507: a line drawn on from another line's end by coordinates meets it through a Coincident
 /// constraint, and a dimension measures to the second line's own end at that corner. The corner
 /// is still rounded, by point and by naming the two lines, and the dimension keeps measuring to
