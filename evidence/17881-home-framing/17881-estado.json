@@ -1,0 +1,275 @@
+{
+ "puerto": 27981,
+ "pasos": [
+  {
+   "tag": "navegador-abierto-antes-de-home",
+   "viewport": [
+    0.0,
+    34.0,
+    1600.0,
+    966.0
+   ],
+   "centro_pieza": [
+    [
+     751.0559692382812,
+     553.5
+    ]
+   ],
+   "esquinas": [
+    [
+     573.6118774414062,
+     794.5526123046875
+    ],
+    [
+     751.0559692382812,
+     897.0
+    ],
+    [
+     751.0559692382812,
+     692.1052856445312
+    ],
+    [
+     928.5,
+     794.5526123046875
+    ],
+    [
+     573.6118774414062,
+     312.4473571777344
+    ],
+    [
+     751.0559692382812,
+     414.8947448730469
+    ],
+    [
+     751.0559692382812,
+     210.0
+    ],
+    [
+     928.5,
+     312.4473571777344
+    ]
+   ],
+   "status": null,
+   "ui": {
+    "agentCursor": {
+     "follow_camera": false,
+     "show": false,
+     "speed": 1.0
+    },
+    "autoOrthoFaces": false,
+    "dark": true,
+    "groundShadow": true,
+    "hiddenProfiles": [],
+    "lassoSelect": false,
+    "layout": "compact",
+    "lockedBodies": [],
+    "paletteOpen": false,
+    "perspective": false,
+    "pickBodies": false,
+    "pickComponents": false,
+    "pickOff": [],
+    "recentColors": [],
+    "renderPick": "face",
+    "showBrowser": true,
+    "showGrid": true,
+    "showNavigationBar": true,
+    "showOrigin": true,
+    "showSketches": true,
+    "showTimeline": true,
+    "shownDims": [],
+    "tab": "MODEL",
+    "toolCursor": false,
+    "upAxis": "z",
+    "viewAnglesLockPitch": false,
+    "viewAnglesLockRoll": false,
+    "viewAnglesLockYaw": false,
+    "visualStyle": 0
+   }
+  },
+  {
+   "tag": "screenshot",
+   "name": "17881-01-navegador-abierto-antes-de-home.png",
+   "ok": true
+  },
+  {
+   "tag": "navegador-abierto-despues-de-home",
+   "viewport": [
+    0.0,
+    34.0,
+    1600.0,
+    966.0
+   ],
+   "centro_pieza": [
+    [
+     925.0,
+     553.5
+    ]
+   ],
+   "esquinas": [
+    [
+     743.93994140625,
+     799.4649047851562
+    ],
+    [
+     925.0,
+     903.9999389648438
+    ],
+    [
+     925.0,
+     694.9298095703125
+    ],
+    [
+     1106.06005859375,
+     799.4649047851562
+    ],
+    [
+     743.93994140625,
+     307.5351257324219
+    ],
+    [
+     925.0,
+     412.0701904296875
+    ],
+    [
+     925.0,
+     203.0000457763672
+    ],
+    [
+     1106.06005859375,
+     307.5351257324219
+    ]
+   ],
+   "status": null,
+   "ui": {
+    "agentCursor": {
+     "follow_camera": false,
+     "show": false,
+     "speed": 1.0
+    },
+    "autoOrthoFaces": false,
+    "dark": true,
+    "groundShadow": true,
+    "hiddenProfiles": [],
+    "lassoSelect": false,
+    "layout": "compact",
+    "lockedBodies": [],
+    "paletteOpen": false,
+    "perspective": false,
+    "pickBodies": false,
+    "pickComponents": false,
+    "pickOff": [],
+    "recentColors": [],
+    "renderPick": "face",
+    "showBrowser": true,
+    "showGrid": true,
+    "showNavigationBar": true,
+    "showOrigin": true,
+    "showSketches": true,
+    "showTimeline": true,
+    "shownDims": [],
+    "tab": "MODEL",
+    "toolCursor": false,
+    "upAxis": "z",
+    "viewAnglesLockPitch": false,
+    "viewAnglesLockRoll": false,
+    "viewAnglesLockYaw": false,
+    "visualStyle": 0
+   }
+  },
+  {
+   "tag": "screenshot",
+   "name": "17881-02-navegador-abierto-despues-de-home.png",
+   "ok": true
+  },
+  {
+   "tag": "sin-navegador-despues-de-home",
+   "viewport": [
+    0.0,
+    34.0,
+    1600.0,
+    966.0
+   ],
+   "centro_pieza": [
+    [
+     800.0,
+     553.5
+    ]
+   ],
+   "esquinas": [
+    [
+     618.93994140625,
+     799.4649047851562
+    ],
+    [
+     800.0,
+     903.9999389648438
+    ],
+    [
+     800.0,
+     694.9298095703125
+    ],
+    [
+     981.06005859375,
+     799.4649047851562
+    ],
+    [
+     618.93994140625,
+     307.5351257324219
+    ],
+    [
+     800.0,
+     412.0701904296875
+    ],
+    [
+     800.0,
+     203.0000457763672
+    ],
+    [
+     981.06005859375,
+     307.5351257324219
+    ]
+   ],
+   "status": null,
+   "ui": {
+    "agentCursor": {
+     "follow_camera": false,
+     "show": false,
+     "speed": 1.0
+    },
+    "autoOrthoFaces": false,
+    "dark": true,
+    "groundShadow": true,
+    "hiddenProfiles": [],
+    "lassoSelect": false,
+    "layout": "compact",
+    "lockedBodies": [],
+    "paletteOpen": false,
+    "perspective": false,
+    "pickBodies": false,
+    "pickComponents": false,
+    "pickOff": [],
+    "recentColors": [],
+    "renderPick": "face",
+    "showBrowser": false,
+    "showGrid": true,
+    "showNavigationBar": true,
+    "showOrigin": true,
+    "showSketches": true,
+    "showTimeline": true,
+    "shownDims": [],
+    "tab": "MODEL",
+    "toolCursor": false,
+    "upAxis": "z",
+    "viewAnglesLockPitch": false,
+    "viewAnglesLockRoll": false,
+    "viewAnglesLockYaw": false,
+    "visualStyle": 0
+   }
+  },
+  {
+   "tag": "screenshot",
+   "name": "17881-03-sin-navegador-despues-de-home.png",
+   "ok": true
+  }
+ ]
+}
