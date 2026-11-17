@@ -5170,14 +5170,17 @@ mod ribbon_gallery_tests {
         h.frames(3);
         let first = rect_of(&format!("ribbon:constraint:{}", crate::workspace::CONSTRAINT_GALLERY[0])).unwrap();
         let last = rect_of(&format!("ribbon:constraint:{}", crate::workspace::CONSTRAINT_GALLERY[5])).unwrap();
-        for id in ["sketch.constraint.midpoint", "sketch.constraint.fix"] {
+        for id in ["sketch.constraint.midpoint", "sketch.constraint.fix", "sketch.constraint.concentric"] {
             crate::toolbar_custom::pin(&mut h.app, "SKETCH", id).unwrap();
         }
         h.frames(3);
         let midpoint = rect_of("ribbon:constraint:sketch.constraint.midpoint").unwrap();
         let fix = rect_of("ribbon:constraint:sketch.constraint.fix").unwrap();
+        let concentric = rect_of("ribbon:constraint:sketch.constraint.concentric").unwrap();
         assert_eq!(midpoint.size(), first.size());
-        // Eight cells in two rows of four: the defaults keep their places, the pins fill column four.
+        assert_eq!(concentric.size(), first.size(), "a pinned concentric is a small cell like the others");
+        // Nine cells: the defaults keep their places, the pins follow in pin order (a pinned
+        // concentric joins them like any other constraint icon).
         assert_eq!(rect_of(&format!("ribbon:constraint:{}", crate::workspace::CONSTRAINT_GALLERY[0])), Some(first));
         assert_eq!(
             (midpoint.top(), midpoint.left() - 27.0),
