@@ -365,10 +365,13 @@ impl Builder {
                 distance2: second.map(mm),
                 start_offset: None,
                 through_all: through,
+                through_all2: false,
                 taper: None,
                 to: None,
                 to_offset: None,
                 from: None,
+                to2: None,
+                to2_offset: None,
                 // The PR was written before these: no second side follows the first (the
                 // FreeCAD two-sided extent is one side each way), no taper, no join apart.
                 second_follows_first: false,

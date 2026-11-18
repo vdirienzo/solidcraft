@@ -106,18 +106,21 @@ pub(super) fn local_geometry(f: &Feature, components: &std::collections::HashMap
                 distance2: _,
                 start_offset: _,
                 through_all,
+                through_all2,
                 second_follows_first: _,
                 taper: _,
                 to,
                 to_offset: _,
                 from,
+                to2,
+                to2_offset: _,
                 corner: _,
                 to_body_apart: _,
                 from_level: _,
                 picked_placements: _,
                 one_sided_direction: _,
             } = extent;
-            to.is_none() && from.is_none() && !through_all && components.get(&sketch.0) == Some(&f.component)
+            to.is_none() && from.is_none() && !through_all && !through_all2 && to2.is_none() && components.get(&sketch.0) == Some(&f.component)
         }
         _ => false,
     }

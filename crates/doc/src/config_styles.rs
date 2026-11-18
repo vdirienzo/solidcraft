@@ -192,7 +192,7 @@ impl Document {
             FeatureKind::Extrude { extent, .. } => {
                 extent.from.is_none()
                     && extent.start_offset.as_deref().is_none_or(|value| literal_zero(value, crate::expr::Kind::Length))
-                    && extent.distance2.is_none()
+                    && !extent.has_second_side()
                     && ["start", "top", "bottom"].contains(&role)
             }
             FeatureKind::Revolve { angle2, symmetric, .. } => angle2.is_none() && !symmetric && ["start", "end"].contains(&role),

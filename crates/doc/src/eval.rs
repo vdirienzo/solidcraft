@@ -5678,6 +5678,37 @@ pub fn through_all_distance(st: &ModelState, plane: &Plane, start: f64, targets:
     Ok(far * 1.02 + 1.0)
 }
 
+/// Distance that reaches through every target body on one side of the plane `start`, along the
+/// normal, in the direction `sign` (1: along the normal, -1: against it). The bodies on the
+/// other side do not count: the reach is how far the side it is on has to go. Nothing on that
+/// side: the reach is zero, and the side stays where it starts.
+pub fn through_all_distance_side(st: &ModelState, plane: &Plane, start: f64, targets: &[String], sign: f64) -> Result<f64> {
+    let mut far: f64 = 0.0;
+    let mut any = false;
+    for b in st.bodies.iter().filter(|b| targets.is_empty() || targets.contains(&b.name)) {
+        let bb = b.body.exact_bounds().map_err(|e| DocError::Invalid(e.to_string()))?;
+        if bb.is_empty() {
+            continue;
+        }
+        any = true;
+        for i in 0..8 {
+            let p = Vec3::new(
+                if i & 1 == 0 { bb.min.x } else { bb.max.x },
+                if i & 2 == 0 { bb.min.y } else { bb.max.y },
+                if i & 4 == 0 { bb.min.z } else { bb.max.z },
+            );
+            far = far.max(sign * (plane.height(p) - start));
+        }
+    }
+    if !any {
+        return Err(DocError::Invalid("through all needs a body to cut".into()));
+    }
+    if far <= 0.0 {
+        return Ok(0.0);
+    }
+    Ok(far * 1.02 + 1.0)
+}
+
 /// The body a face-based feature applies to: by name, or the one whose surface is nearest the
 /// first point.
 fn body_at(st: &ModelState, body: &Option<crate::BodyName>, points: &[Vec3]) -> Result<usize> {
@@ -7658,17 +7689,17 @@ pub(crate) fn thin_regions(vals: &BTreeMap<String, Value>, ss: &SolvedSketch, th
 const APART_GAP: f64 = 1e-3;
 
 /// The tool bodies a feature adds or removes (extrude, revolve, primitives), in the current state.
-/// `to_body` is the body a To Object extent runs to (an extrude), when it found one.
+/// `to_body` are the bodies a To Object extent runs to (an extrude), when it found them.
 fn feature_tools_with_constructor(
     doc: &Document,
     vals: &BTreeMap<String, Value>,
     f: &Feature,
     st: &ModelState,
     constructor: &mut Option<ExtrudeConstructor>,
-    to_body: &mut Option<String>,
+    to_body: &mut Vec<String>,
     warning: &mut Option<String>,
 ) -> Result<Vec<Traced>> {
-    *to_body = None;
+    *to_body = Vec::new();
     let unnamed = |bodies: Vec<Body>| -> Vec<Traced> { bodies.into_iter().map(Traced::unnamed).collect() };
     match &f.kind {
         FeatureKind::Extrude { sketch, profiles, extent, operation, targets, thin } => {
@@ -7701,16 +7732,29 @@ fn feature_tools_with_constructor(
             // Through all, and where the tool meets its targets, is measured where they are shown.
             let shown = targets_as_shown(st, f, &crate::plain(targets))?;
             let st: &ModelState = &shown;
-            // The face names follow `face_points`: To, then From.
+            // The face names follow `face_points`: To, then From, then the second side's To.
             let name = |k: usize| f.face_names.get(k).map(String::as_str);
             let (to_name, from_name) = if extent.to.is_some() { (name(0), name(1)) } else { (None, name(0)) };
+            let to2_name = name(usize::from(extent.to.is_some()) + usize::from(extent.from.is_some()));
             let to_face = extent.to.and_then(|p| object_face_at_level(&tst, to_name, p.0, &ss.plane));
             // A vertex or an edge point where a plane the extrusion runs along meets another face:
             // its own level is the end (#12968), not the surface of one of the faces there.
             let to_end_face = to_face.filter(|face| !extent.to.is_some_and(|p| on_edge_without_cap(&tst, *face, p.0, n)));
-            // The body the extent runs to: a Join to it joins that body too (#6424), unless the
+            // The second side's To Object: the face it ends at, on the side the first side leaves
+            // free.
+            let to2_face = extent.to2.and_then(|p| object_face_at_level(&tst, to2_name, p.0, &ss.plane));
+            let to2_end_face = to2_face.filter(|face| !extent.to2.is_some_and(|p| on_edge_without_cap(&tst, *face, p.0, n)));
+            // The bodies the extent runs to: a Join to them joins them too (#6424), unless the
             // design was built before it did (#8151).
-            *to_body = to_face.filter(|_| !extent.to_body_apart).and_then(|(bi, _)| tst.bodies.get(bi)).map(|b| b.name.clone());
+            if !extent.to_body_apart {
+                for face in [to_face, to2_face].into_iter().flatten() {
+                    if let Some(name) = tst.bodies.get(face.0).map(|b| b.name.clone())
+                        && !to_body.contains(&name)
+                    {
+                        to_body.push(name);
+                    }
+                }
+            }
             let centre = {
                 let pts: Vec<Vec2> = regions.iter().flat_map(|r| r.outer.polyline(1e-2)).collect();
                 let c = pts.iter().fold(Vec2::default(), |a, p| a + *p) * (1.0 / pts.len().max(1) as f64);
@@ -7787,13 +7831,20 @@ fn feature_tools_with_constructor(
                 (Some(_), Some(e)) => val(vals, e, Kind::Length)?,
                 _ => 0.0,
             };
+            // The second side's To face, the tool is cut back to in the same way.
+            let curved2 = curved_face(&tst, to2_end_face, Some(n))
+                .filter(|_| !to2_end_face.is_some_and(|face| runs_along(&tst, face, n) && !meets_footprint(&tst, face, &ss.plane, &regions)));
+            let to2_offset = match (&extent.to2, &extent.to2_offset) {
+                (Some(_), Some(e)) => val(vals, e, Kind::Length)?,
+                _ => 0.0,
+            };
             // A taper of 0 is a straight extrusion (the dialog stores one, and designs carry it);
             // the tapered path refuses a profile with holes without a draft (#13188).
             if let Some(tp) = &extent.taper
                 && val(vals, tp, Kind::Angle)? != 0.0
             {
                 let taper = val(vals, tp, Kind::Angle)?;
-                if extent.distance2.is_some() || extent.direction == crate::Direction::Symmetric {
+                if extent.has_second_side() || extent.direction == crate::Direction::Symmetric {
                     return Err(DocError::Invalid("not supported yet: taper with two-sided or symmetric extents".into()));
                 }
                 let sign = if extent.to.is_none() && extent.direction == crate::Direction::Negative { -1.0 } else { 1.0 };
@@ -7873,7 +7924,15 @@ fn feature_tools_with_constructor(
                 };
             // To Object gives a signed distance from the start: one side only.
             let direction = if extent.to.is_some() { crate::Direction::Positive } else { extent.direction };
-            let (a, b) = extent_sides(vals, extent, d, direction)?;
+            // The first side's reach, signed along the normal: the second side goes the other way.
+            let first = if direction == crate::Direction::Negative { -d } else { d };
+            // The second side's own extent type (Through All, To Object): its reach comes from
+            // the model, on the side the first side leaves free.
+            let second = second_side_reach(vals, extent, first, st, &tst, &ss.plane, centre, off, &crate::plain(targets), to2_end_face)?;
+            // The second side's To face is at the end its reach points to: the low end when it
+            // goes against the normal, the high end when it goes along it.
+            let second_low = second.is_some_and(|reach| reach < 0.0);
+            let (a, b) = extent_sides(vals, extent, d, direction, second)?;
             // A negative distance flips the side.
             let (mut lo, mut hi) = if a <= b { (a, b) } else { (b, a) };
             // To a curved (or slanted) face: run right through the target body, then keep what
@@ -7903,6 +7962,24 @@ fn feature_tools_with_constructor(
                     lo = hs.iter().cloned().fold(lo, f64::min) - margin;
                 }
             }
+            // The second side's To face is at the low end: the tool runs right through it, and is
+            // cut back to it below.
+            if let Some(bi) = curved2
+                && let Some(tb) = tst.bodies.get(bi)
+            {
+                let m = tb.mesh();
+                let mut hs: Vec<f64> = m.positions.iter().map(|q| (*q - ss.plane.origin).dot(n) - off).collect();
+                if let Some(slope) = to2_face.and_then(|face| slanted_plane(&tst, face, n)) {
+                    let (rise_lo, rise_hi) = slope_rise(&slope, &ss.plane, &regions, off);
+                    hs.extend([rise_lo, rise_hi]);
+                }
+                let margin = tb.body.size() * 0.05 + 1.0 + to2_offset.abs();
+                if second_low {
+                    lo = hs.iter().cloned().fold(lo, f64::min) - margin;
+                } else {
+                    hi = hs.iter().cloned().fold(hi, f64::max) + margin;
+                }
+            }
             // From a slanted face: the prism runs over the face's whole rise across the profiles,
             // then is cut at the face's plane moved to each end.
             let (run_lo, run_hi) = match &from_slope {
@@ -7916,7 +7993,7 @@ fn feature_tools_with_constructor(
                 None => (lo, hi),
             };
             extrude_within_reach([run_lo + off, run_hi + off])?;
-            let untrimmed = extent.to.is_none() && extent.from.is_none() && !extent.through_all;
+            let untrimmed = extent.to.is_none() && extent.from.is_none() && !extent.through_all && !extent.through_all2 && extent.to2.is_none();
             let mut tools = Vec::new();
             for r in &regions {
                 tools.extend(centered_extrude(
@@ -7926,8 +8003,8 @@ fn feature_tools_with_constructor(
                     run_hi + off,
                     Some(&ss),
                     thin_roles.as_ref(),
-                    extent.distance2.is_some(),
-                    extent.one_sided_direction.filter(|_| direction == crate::Direction::Symmetric && extent.distance2.is_none()),
+                    extent.has_second_side(),
+                    extent.one_sided_direction.filter(|_| direction == crate::Direction::Symmetric && !extent.has_second_side()),
                 )?);
             }
             if let Some(fp) = &from_slope {
@@ -7961,9 +8038,18 @@ fn feature_tools_with_constructor(
                 let far = if hi > 0.0 { hi + off } else { lo + off };
                 tools = trim_to_curved_face(tools, tb, fi, p.0, to_offset, &ss.plane, start, far)?;
             }
+            // The second side's To face: the tool is cut back to it at the low end, the way the
+            // first side's is cut back to its face at the high end.
+            if let Some(tb) = curved2.and_then(|bi| tst.bodies.get(bi))
+                && let Some((_, fi)) = to2_face
+                && let Some(p) = extent.to2
+            {
+                let (start, far) = if second_low { (hi + off, lo + off) } else { (lo + off, hi + off) };
+                tools = trim_to_curved_face(tools, tb, fi, p.0, to2_offset, &ss.plane, start, far)?;
+            }
             // A join's profile grows into the material it joins; its sketch plane and depth as drawn
             // still serve a join into sheet metal (`sheet_join`), which takes the sketch's regions.
-            if untrimmed || (*operation == Operation::Join && curved.is_none() && from_slope.is_none()) {
+            if untrimmed || (*operation == Operation::Join && curved.is_none() && curved2.is_none() && from_slope.is_none()) {
                 *constructor = Some(ExtrudeConstructor { plane: ss.plane, interval: (lo + off, hi + off) });
             }
             // A Join tool's faces outlive the boolean where they stay on the result, so they are
@@ -8880,33 +8966,95 @@ fn from_profile_on_closed_path(segs: Vec<solidcore_record::Seg2>, path: &Plane, 
 /// or along it for `direction: negative` (#2700). Entered distances keep those sides whatever
 /// their signs; a To Object below the sketch or a Through All that reaches down sends the first
 /// side down and the second back along the normal.
-pub(crate) fn extent_sides(vals: &BTreeMap<String, Value>, extent: &crate::Extent, d: f64, direction: crate::Direction) -> Result<(f64, f64)> {
-    Ok(match (&extent.distance2, direction) {
-        (Some(d2), _) => {
+///
+/// `second` is the reach of a second side that has an extent type of its own (Through All, To
+/// Object): it comes from the model, signed along the normal, and it is used as it is.
+pub(crate) fn extent_sides(
+    vals: &BTreeMap<String, Value>,
+    extent: &crate::Extent,
+    d: f64,
+    direction: crate::Direction,
+    second: Option<f64>,
+) -> Result<(f64, f64)> {
+    let has_second = extent.has_second_side();
+    Ok(match (has_second, direction) {
+        (true, _) => {
             let negative = direction == crate::Direction::Negative;
             let first = if negative { -d } else { d };
-            let d2 = val(vals, d2, Kind::Length)?;
-            // An entered distance keeps its side whatever its sign: Direction fixes the sides,
-            // and a sign only turns its own side over. A reach computed from the model (To
-            // Object, Through All) has the sign of where the object is, so the other side
-            // follows it.
-            let second = if extent.second_follows_first || extent.to.is_some() || extent.through_all {
-                if first < 0.0 { d2 } else { -d2 }
-            } else if negative {
-                d2
-            } else {
-                -d2
+            let second = match second {
+                // A reach the model gives the second side: it keeps the side it was measured on.
+                Some(reach) => reach,
+                None => {
+                    let Some(d2) = &extent.distance2 else {
+                        return Err(DocError::Invalid("the second side needs a distance".into()));
+                    };
+                    let d2 = val(vals, d2, Kind::Length)?;
+                    // An entered distance keeps its side whatever its sign: Direction fixes the sides,
+                    // and a sign only turns its own side over. A reach computed from the model (To
+                    // Object, Through All) has the sign of where the object is, so the other side
+                    // follows it.
+                    if extent.second_follows_first || extent.to.is_some() || extent.through_all {
+                        if first < 0.0 { d2 } else { -d2 }
+                    } else if negative {
+                        d2
+                    } else {
+                        -d2
+                    }
+                }
             };
             (second, first)
         }
-        (None, crate::Direction::Positive) => (0.0, d),
-        (None, crate::Direction::Negative) => (-d, 0.0),
-        (None, crate::Direction::Symmetric) => {
+        (false, crate::Direction::Positive) => (0.0, d),
+        (false, crate::Direction::Negative) => (-d, 0.0),
+        (false, crate::Direction::Symmetric) => {
             // Through All is a reach computed from target bodies, not an entered total.
             let half = if extent.through_all { d } else { extent.convention.symmetric_half_distance(d) };
             (-half, half)
         }
     })
+}
+
+/// The reach of the second side of a two-sided extrude when it has an extent type of its own
+/// (Through All, To Object): the reach the model gives it, measured from where the extrude
+/// starts (`start`, the From Object level plus any start offset), on the side the first side
+/// leaves free. `None` when the second side is a distance, which `extent_sides` reads itself.
+///
+/// `first` is the reach of the first side, signed along the normal: the second side goes the
+/// other way.
+#[allow(clippy::too_many_arguments)]
+fn second_side_reach(
+    vals: &BTreeMap<String, Value>,
+    extent: &crate::Extent,
+    first: f64,
+    st: &ModelState,
+    tst: &ModelState,
+    plane: &Plane,
+    centre: Vec3,
+    start: f64,
+    targets: &[String],
+    to2_end_face: Option<(usize, usize)>,
+) -> Result<Option<f64>> {
+    if extent.through_all2 {
+        // Through all: every target body on the side the second side is on. The reach is signed
+        // along the normal, like every other reach.
+        let sign = if first < 0.0 { 1.0 } else { -1.0 };
+        let reach = through_all_distance_side(st, plane, start, targets, sign)?;
+        return Ok(Some(sign * reach));
+    }
+    let Some(pick) = &extent.to2 else { return Ok(None) };
+    let off = match &extent.to2_offset {
+        Some(e) => val(vals, e, Kind::Length)?,
+        None => 0.0,
+    };
+    let h = height_at(tst, to2_end_face, plane, centre, pick.0);
+    // Past the face by the offset, in the direction travelled.
+    let end = h + if h >= start { off } else { -off };
+    let reach = end - start;
+    // The second side is the side the first side leaves free.
+    if reach != 0.0 && (reach < 0.0) == (first < 0.0) {
+        return Err(DocError::Invalid("the second side's To object is on the same side as the first".into()));
+    }
+    Ok(Some(reach))
 }
 
 /// Operation and targets of a feature that makes tools.
@@ -9960,7 +10108,7 @@ fn replay(
                 }
                 None => with_named_face_points(doc, vals, named_from.as_ref().unwrap_or(st), src)?.map(|(g, _)| g),
             };
-            let tools = feature_tools_with_constructor(doc, vals, moved.as_ref().unwrap_or(src), st, &mut None, &mut None, &mut None)?;
+            let tools = feature_tools_with_constructor(doc, vals, moved.as_ref().unwrap_or(src), st, &mut None, &mut Vec::new(), &mut None)?;
             for (k, m) in mats.iter().enumerate() {
                 let start = copies.len();
                 for t in &tools {
@@ -10516,7 +10664,7 @@ const FROM_SLOPE_LEAST_SINE: f64 = 0.087_155_742_747_658_17;
 /// say (one gone, both alike, or the extrude not built): no cap of it will answer to `start`.
 pub fn keep_one_sided_direction(model: &Model, old: &Feature, new: &mut Feature) {
     let FeatureKind::Extrude { extent: after, .. } = &mut new.kind else { return };
-    let symmetric = |e: &crate::Extent| e.direction == crate::Direction::Symmetric && e.distance2.is_none();
+    let symmetric = |e: &crate::Extent| e.direction == crate::Direction::Symmetric && !e.has_second_side();
     let FeatureKind::Extrude { extent: before, .. } = &old.kind else {
         after.one_sided_direction = None;
         return;
@@ -10525,7 +10673,7 @@ pub fn keep_one_sided_direction(model: &Model, old: &Feature, new: &mut Feature)
         None
     } else if symmetric(before) {
         before.one_sided_direction
-    } else if before.distance2.is_some() {
+    } else if before.has_second_side() {
         None
     } else {
         model.result(old.id).filter(|r| !r.skipped && r.error.is_none()).and_then(|r| {
@@ -10958,7 +11106,7 @@ fn eval_feature_kind(
         | FeatureKind::Sweep { operation, targets, .. } => {
             refuse_ambiguous_targets(doc, st, f, &crate::plain(targets))?;
             let mut constructor = None;
-            let mut to_body = None;
+            let mut to_body = Vec::new();
             let tools = feature_tools_with_constructor(doc, vals, f, st, &mut constructor, &mut to_body, warning)?;
             // #9969: a cut whose tool lies clear of the body (a profile drawn beside it, a
             // distance that stops short, the wrong direction) reported success and changed
@@ -10986,7 +11134,7 @@ fn eval_feature_kind(
             }
             // A join one sheet thick in the plane of a panel becomes part of that panel. A Join to an
             // object (#6424) is left to the generic path below, which joins the object as well.
-            if *operation == Operation::Join && to_body.is_none() && matches!(f.kind, FeatureKind::Extrude { .. }) && !st.sheets.is_empty() {
+            if *operation == Operation::Join && to_body.is_empty() && matches!(f.kind, FeatureKind::Extrude { .. }) && !st.sheets.is_empty() {
                 let bodies: Vec<Body> = tools.iter().map(|t| t.body.clone()).collect();
                 if !more::sheet_join(f, st, &bodies, &crate::plain(targets), constructor.as_ref())?.is_empty() {
                     return Ok(());
@@ -10994,7 +11142,7 @@ fn eval_feature_kind(
             }
             // A Join extrude to an object joins that object too (#6424): the tool and the body
             // it runs to are one body, not only the body the profile was sketched on.
-            let extra: Vec<String> = if *operation == Operation::Join { to_body.into_iter().collect() } else { Vec::new() };
+            let extra: Vec<String> = if *operation == Operation::Join { to_body } else { Vec::new() };
             apply_traced_with(doc, st, f, tools, *operation, &crate::plain(targets), &extra)?;
             unchanged(st, warning);
             Ok(())

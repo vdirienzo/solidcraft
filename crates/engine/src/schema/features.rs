@@ -130,6 +130,18 @@ pub struct ExtrudeParams {
     /// and `distance2` along it. A negative distance only turns its own side over.
     #[serde(default)]
     pub distance2: Option<LengthExpr>,
+    /// The second side of a two-sided extrude goes through every target body, the way
+    /// `through_all` does for the first side, on the side `direction` leaves free.
+    #[serde(default)]
+    pub through_all2: Option<bool>,
+    /// To Object on the second side of a two-sided extrude: the extrude ends at that face,
+    /// vertex or point, on the side `direction` leaves free.
+    #[serde(default, deserialize_with = "present")]
+    #[schemars(with = "ToPoint")]
+    pub to2: Option<ToPoint>,
+    /// How far past `to2` to go.
+    #[serde(default)]
+    pub to2_offset: Option<LengthExpr>,
     /// Start this far from the sketch plane, along its normal.
     #[serde(default)]
     pub start_offset: Option<LengthExpr>,

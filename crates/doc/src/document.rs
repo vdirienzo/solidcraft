@@ -373,6 +373,10 @@ pub struct Extent {
     /// Through all bodies in the direction(s) instead of `distance`.
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub through_all: bool,
+    /// The second side of a two-sided extrude goes through every target body, the way the first
+    /// side's `through_all` does, on the side `direction` leaves free.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub through_all2: bool,
     /// Two Sides as older builds read it: `distance2` goes the other way from wherever the
     /// first side went, so a negative entered distance sends it back along the normal. Saved
     /// designs from before entered distances kept their sides carry it, so they rebuild as
@@ -401,6 +405,14 @@ pub struct Extent {
     /// `start_offset`).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub from: Option<FacePick>,
+    /// To Object on the second side of a two-sided extrude: the extrude ends at this face, vertex
+    /// or point, on the side `direction` leaves free.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub to2: Option<FacePick>,
+    /// Offset past the second side's To Object face (expression; negative stops short).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[walk(length = "To offset 2")]
+    pub to2_offset: Option<Expr>,
     /// From Object on a face at a slant to the extrusion starts on a plane parallel to the
     /// sketch, at the level where the face meets the middle of the profiles, instead of on the
     /// face. Designs saved before From Object followed a slanted face open with it set, so they
@@ -428,6 +440,14 @@ pub struct Extent {
     pub one_sided_direction: Option<Direction>,
 }
 
+impl Extent {
+    /// Whether the extrude has a second side: a second distance, or a second side with an extent
+    /// type of its own (Through All, To Object).
+    pub fn has_second_side(&self) -> bool {
+        self.distance2.is_some() || self.through_all2 || self.to2.is_some()
+    }
+}
+
 /// A component's placement relative to a feature's own component, as it was when the feature
 /// picked something in it ([`Extent::picked_placements`]).
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -435,7 +455,6 @@ pub struct PickedPlacement {
     pub component: u64,
     pub placement: crate::Mat,
 }
-
 /// Thin Extrude: a wall of constant thickness along sketch curves instead of the profiles.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize, solidcraft_derive::Walk)]
 pub struct ThinWall {

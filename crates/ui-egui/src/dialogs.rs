@@ -188,6 +188,13 @@ crate::dialog_descriptor::dialog_descriptors! {
                 smart: crate::smart_extrude::Smart,
                 /// The other side's distance (two sides).
                 distance2: String,
+                /// The other side goes through everything (Through All), the way `all` is for
+                /// the first side.
+                all2: bool,
+                /// The other side's To Object: the point it ends at.
+                to2: Option<Value>,
+                /// How far past the other side's To Object to go.
+                to2_offset: String,
                 /// Taper angle (empty or zero: none).
                 taper: String,
                 /// An explicitly authored zero taper is still a model parameter.
@@ -974,6 +981,9 @@ impl Dialog {
                     auto_op: true,
                     smart: crate::smart_extrude::Smart { auto_to_object: app.preferences.extrude_auto_to_object, ..Default::default() },
                     distance2: length_default(s, "10"),
+                    all2: false,
+                    to2: None,
+                    to2_offset: String::new(),
                     taper: "0 deg".into(),
                     taper_present: false,
                     to_offset: String::new(),
@@ -5978,6 +5988,9 @@ fn dialog_commands(app: &SolveApp, d: &Dialog) -> Result<Vec<(String, Value)>, S
             direction,
             operation,
             distance2,
+            all2,
+            to2,
+            to2_offset,
             taper,
             taper_present,
             to_offset,
@@ -5993,7 +6006,16 @@ fn dialog_commands(app: &SolveApp, d: &Dialog) -> Result<Vec<(String, Value)>, S
             let mut common = json!({"distance": distance, "direction": DIRS.get(*direction).copied().unwrap_or("positive"), "operation": OPS.get(*operation).copied().unwrap_or("new")});
             let tapered = s.doc.eval(taper, ValueKind::Angle).map(|v| v.abs() > 1e-12).unwrap_or(!taper.trim().is_empty());
             if two_sided(*direction) {
-                common["distance2"] = json!(distance2);
+                // The second side has one type: a distance, Through All or To Object. The one the
+                // feature was built with is kept, as the dialog has no choice of its own yet.
+                if *all2 {
+                    common["through_all2"] = json!(true);
+                } else if let Some(to2) = to2 {
+                    common["to2"] = to2.clone();
+                    put(&mut common, &[("to2_offset", to2_offset)]);
+                } else {
+                    common["distance2"] = json!(distance2);
+                }
             } else if *direction < 2 && (*taper_present || tapered) {
                 common["taper"] = json!(taper);
             }
@@ -7835,17 +7857,20 @@ pub fn for_feature(app: &SolveApp, id: u64, marker: Option<usize>) -> Option<Dia
             let mut d = start("solid.extrude")?;
             d.kind = Kind::Extrude {
                 distance: extent.distance.to_string(),
-                direction: match (extent.direction, &extent.distance2) {
-                    (Direction::Negative, Some(_)) => TWO_SIDES_REVERSED,
-                    (_, Some(_)) => TWO_SIDES,
-                    (Direction::Positive, None) => 0,
-                    (Direction::Negative, None) => 1,
-                    (Direction::Symmetric, None) => 2,
+                direction: match (extent.direction, extent.has_second_side()) {
+                    (Direction::Negative, true) => TWO_SIDES_REVERSED,
+                    (_, true) => TWO_SIDES,
+                    (Direction::Positive, false) => 0,
+                    (Direction::Negative, false) => 1,
+                    (Direction::Symmetric, false) => 2,
                 },
                 operation: op_index(operation),
                 auto_op: false,
                 smart: crate::smart_extrude::Smart { manual_dir: true, auto_to_object: app.preferences.extrude_auto_to_object, ..Default::default() },
                 distance2: extent.distance2.as_deref().map(str::to_string).unwrap_or_else(|| length_default(s, "10")),
+                all2: extent.through_all2,
+                to2: extent.to2.map(|p| json!([p.0.x, p.0.y, p.0.z])),
+                to2_offset: extent.to2_offset.as_deref().map(str::to_string).unwrap_or_default(),
                 taper: extent.taper.as_deref().map(str::to_string).unwrap_or_else(|| "0 deg".into()),
                 taper_present: extent.taper.is_some(),
                 to_offset: extent.to_offset.as_deref().map(str::to_string).unwrap_or_default(),

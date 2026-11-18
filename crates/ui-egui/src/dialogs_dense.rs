@@ -502,6 +502,11 @@ pub(super) fn rows(app: &mut SolveApp, ctx: &egui::Context, d: &mut Dialog, ui: 
             wall,
             wall_side,
             wall2,
+            // The second side's extent type has no row of its own yet: it is kept as the
+            // feature was built with.
+            all2: _,
+            to2: _,
+            to2_offset: _,
         } => {
             form_row(ui, "Direction", |ui| {
                 // One Side, Two Sides, Symmetric (a flip is a negative distance).
