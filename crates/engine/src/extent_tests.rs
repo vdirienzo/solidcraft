@@ -578,6 +578,66 @@ fn through_all_block() -> Session {
     s
 }
 
+/// A sketch on the XY plane with a 10 × 10 rectangle, to extrude two ways from.
+fn square_sketch() -> Session {
+    let mut s = Session::default();
+    run(&mut s, "sketch.create", json!({"plane": "XY", "name": "S"}));
+    run(&mut s, "sketch.rectangle.two_point", json!({"p0": [-5, -5], "p1": [5, 5]}));
+    run(&mut s, "sketch.finish", json!({}));
+    s
+}
+
+/// The second side of a two-sided extrude has an extent type of its own: Through All reaches
+/// every target body on the side the first side leaves free (#18691).
+#[test]
+fn the_second_side_of_a_two_sided_extrude_goes_through_all() {
+    let mut s = square_sketch();
+    // A wall under the sketch: the second side has to cross it.
+    run(&mut s, "solid.box", json!({"corner": [-10, -10, -10], "length": 20, "width": 20, "height": 10, "body_name": "Wall"}));
+    run(&mut s, "solid.extrude", json!({"sketch": "S", "distance": 5, "through_all2": true, "body_name": "Post"}));
+    let b = body(&mut s, "Post");
+    // The first side goes up 5 mm; the second side goes down through the wall, which is 10 mm
+    // thick, with the margin a through all keeps past the body.
+    assert!((b["bbox"]["min"][2].as_f64().unwrap() + 11.2).abs() < 1e-6, "{b}");
+    assert!((b["bbox"]["max"][2].as_f64().unwrap() - 5.0).abs() < 1e-6, "{b}");
+    assert!((b["volume_mm3"].as_f64().unwrap() - 100.0 * 16.2).abs() < 1e-3, "{b}");
+}
+
+/// The second side of a two-sided extrude can end at an object (To Object), on the side the
+/// first side leaves free (#18691).
+#[test]
+fn the_second_side_of_a_two_sided_extrude_ends_at_an_object() {
+    let mut s = square_sketch();
+    run(&mut s, "solid.box", json!({"corner": [-10, -10, -20], "length": 20, "width": 20, "height": 20, "body_name": "Block"}));
+    run(&mut s, "solid.extrude", json!({"sketch": "S", "distance": 5, "to2": [0, 0, -20], "body_name": "Post"}));
+    let b = body(&mut s, "Post");
+    assert!((b["bbox"]["min"][2].as_f64().unwrap() + 20.0).abs() < 1e-6, "{b}");
+    assert!((b["bbox"]["max"][2].as_f64().unwrap() - 5.0).abs() < 1e-6, "{b}");
+    assert!((b["volume_mm3"].as_f64().unwrap() - 100.0 * 25.0).abs() < 1e-3, "{b}");
+}
+
+/// The second side's To object has to be on the side the first side leaves free: the two sides
+/// would otherwise overlap (#18691).
+#[test]
+fn the_second_side_to_object_must_be_on_the_side_the_first_leaves_free() {
+    let mut s = square_sketch();
+    run(&mut s, "solid.box", json!({"corner": [-10, -10, -20], "length": 20, "width": 20, "height": 20, "body_name": "Block"}));
+    let e = s.execute("solid.extrude", &json!({"sketch": "S", "distance": 5, "to2": [0, 0, 20]})).unwrap_err();
+    assert!(e.to_string().contains("same side"), "{e}");
+}
+
+/// The second side takes one type: a distance, Through All or To Object. A distance of
+/// `through_all` is a length that no parameter answers to, and the error says what to use
+/// instead (#18691).
+#[test]
+fn the_second_side_takes_one_type() {
+    let mut s = square_sketch();
+    let e = s.execute("solid.extrude", &json!({"sketch": "S", "distance": 5, "distance2": "3 mm", "through_all2": true})).unwrap_err();
+    assert!(e.to_string().contains("one type"), "{e}");
+    let e = s.execute("solid.extrude", &json!({"sketch": "S", "distance": 5, "distance2": "through_all"})).unwrap_err();
+    assert!(e.to_string().contains("through_all2"), "{e}");
+}
+
 /// Through All is measured from where the extrude starts, so a start offset leaves no slab
 /// uncut on either side (#16556).
 #[test]
