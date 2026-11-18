@@ -318,3 +318,7 @@ pub(in crate::cmd) fn pick_owner(s: &Session, value: &Value, captured: &PlaneRef
 #[cfg(test)]
 #[path = "sketch_face_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "probe_12568_tests.rs"]
+mod probe_12568_tests;
