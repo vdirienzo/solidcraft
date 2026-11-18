@@ -23,8 +23,8 @@ use crate::*;
 /// that cut nothing, and the tools a cut of many tools is made with (one when they are cut in one
 /// go), unions run to tell the tools of a cut apart, face surfaces classified for a hole's
 /// direction, joins made of bodies that are all apart without running the kernel's union, and the
-/// holes whose tools were built (not moved from another copy's), and the tight boxes the kernel
-/// was asked for.
+/// holes whose tools were built (not moved from another copy's), the tight boxes the kernel
+/// was asked for, and the kernel's point classifications a pattern's copies were probed with.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub(super) struct Counts {
     pub moved: usize,
@@ -50,6 +50,7 @@ pub(super) struct Counts {
     pub grouped_thread_fallbacks: usize,
     pub hole_tools: usize,
     pub tight_boxes: usize,
+    pub classifications: usize,
 }
 
 thread_local! {
@@ -78,6 +79,7 @@ thread_local! {
             grouped_thread_fallbacks: 0,
             hole_tools: 0,
             tight_boxes: 0,
+            classifications: 0,
         })
     };
 }
@@ -3154,4 +3156,20 @@ fn a_cut_measures_the_tight_box_of_its_tool_only() {
     assert_eq!(st.bodies.len(), 1);
     // The tool crosses the top face: it takes 500 mm3 of the block with it.
     assert!((kernel::measure(&st.bodies[0].body).unwrap().volume - (8000.0 - 500.0)).abs() < 1e-6);
+}
+
+/// A pattern's copies are probed with the kernel's point classifications, to know whether they
+/// take material without intersecting them with the body (#11257). The points of a line are
+/// classified in one call, not one call a point: the kernel makes the body's copy and its
+/// search structures once for all the points of a call, and again for every call a point makes
+/// on its own.
+#[test]
+fn a_pattern_probes_its_copies_with_one_classification_a_line() {
+    // The ten grooves of the pattern notch the same round bore: the probe's points lie on the
+    // bore's surface, where they are not inside the ring, so the probe tries every line it
+    // has before it finds the ring's material. It asked the kernel for 370 classifications,
+    // one a point, and asks for 36.
+    let (faces, work) = grooved_ring_faces();
+    assert_eq!(faces, 24, "the ring comes out as it did");
+    assert_eq!(work.classifications, 36, "{work:?}");
 }
