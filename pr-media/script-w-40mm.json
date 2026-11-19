@@ -1,0 +1,13 @@
+{
+ "commands": [
+  {"command": "parameters.add", "params": {"name": "W", "expression": "40 mm"}},
+  {"command": "sketch.create", "params": {"plane": "XY", "name": "S"}},
+  {"command": "sketch.point", "params": {"point": [0, 0], "id": "corner"}},
+  {"command": "sketch.point", "params": {"point": ["W", 0], "id": "base"}},
+  {"command": "sketch.point", "params": {"point": ["base.x + 10 mm", "base.y + 15 mm"], "id": "derived"}},
+  {"command": "sketch.point", "params": {"point": ["derived.x", "W"], "id": "top"}},
+  {"command": "sketch.line", "params": {"points": ["corner", "base", "derived", "top"], "closed": true, "ids": ["outline"]}},
+  {"command": "sketch.finish", "params": {}},
+  {"command": "solid.extrude", "params": {"sketch": "S", "distance": 10, "body_name": "Profile"}}
+ ]
+}
