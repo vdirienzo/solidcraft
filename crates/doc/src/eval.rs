@@ -7407,14 +7407,16 @@ fn bridge_tools(plane: &Plane, r: f64, rc: f64, dc: f64, bottom: f64, layer: f64
 /// turn is the same whatever angle it starts at).
 const SEAM_TURN: f64 = 0.5;
 
-/// Whether `body` holds a seam in the plane `plane`: an edge of its mesh that lies on a seam and
-/// is in the plane. Two solids of revolution about the same axis, revolved in the same plane,
-/// hold their seams in that plane, and SMLib's boolean splits both where the cut crosses them and
-/// leaves an edge near the seam, which its check refuses (#18039).
+/// Whether `body` holds a seam in the plane `plane`: an edge of its record that is a seam of a
+/// curved surface and lies in the plane. Two solids of revolution about the same axis, revolved
+/// in the same plane, hold their seams in that plane, and SMLib's boolean splits both where the
+/// cut crosses them and leaves an edge near the seam, which its check refuses (#18039).
+///
+/// The seam and its place are read from the body's exact B-rep, never from a mesh: the kernel's
+/// [`kernel::seams_in_plane`] finds the seam edges from their faces and reads their curves
+/// exactly.
 fn has_seam_in_plane(body: &Body, plane: &Plane) -> bool {
-    let Ok(mesh) = body.mesh(&kernel::MeshTolerance::chord(1e-3)) else { return false };
-    let tolerance = body.size().max(1e-9) * 1e-6;
-    mesh.edges.iter().zip(&mesh.seams).any(|(edge, seam)| *seam && edge.iter().all(|p| plane.height(*p).abs() <= tolerance))
+    !kernel::seams_in_plane(body, plane).is_empty()
 }
 
 /// The tool of a whole turn, with the seam of its surface of revolution turned away from the

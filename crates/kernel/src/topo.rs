@@ -11,8 +11,8 @@ use std::cell::OnceCell;
 use std::collections::{BTreeMap, HashMap, HashSet};
 
 use serde::Serialize;
-use solidcore_record::Vec3;
 use solidcore_record::brep::{Brep, Edge, Loop};
+use solidcore_record::{Plane, Vec3};
 use solidcraft_geom::{Mesh, UnitVec3};
 
 use crate::Result;
@@ -111,6 +111,33 @@ pub fn seam_flags(b: &Body, _mesh: &Mesh) -> Vec<bool> {
     let record = b.record();
     let faces = Faces::new(record, surface_tol(b));
     record.edges.iter().zip(edge_faces(record)).map(|(e, fs)| is_seam(&faces, e, &fs)).collect()
+}
+
+/// The record edges (in `Body::edges` order) that are seams of a curved surface and lie in the
+/// plane `plane`: a seam of a curved surface whose exact curve, read off the record, is in the
+/// plane. Two solids of revolution about the same axis, revolved in the same plane, hold their
+/// seams in that plane, and SMLib's boolean splits both where the cut crosses them and leaves an
+/// edge near the seam, which its check refuses (#18039).
+///
+/// Reads the record only, never a mesh: the seam from the edges' faces and their surfaces (the
+/// surfaces compared exactly), the edge's own curve from the record (the same reader a sketch
+/// projects with, [`crate::prism_curve::lies_in_plane`]).
+pub fn seams_in_plane(b: &Body, plane: &Plane) -> Vec<usize> {
+    let record = b.record();
+    let faces = Faces::new(record, surface_tol(b));
+    let tol = b.planar_edges_tolerance();
+    let mut out = Vec::new();
+    for (i, e) in record.edges.iter().enumerate() {
+        if !is_seam(&faces, e, &faces_of(e)) {
+            continue;
+        }
+        let Some(run) = crate::prism_curve::Run::of(record, i, true) else { continue };
+        let mut work = 262_144usize;
+        if crate::prism_curve::lies_in_plane(&run, plane, tol, &mut work) {
+            out.push(i);
+        }
+    }
+    out
 }
 
 /// Most record edges [`whole_edge`] gathers into one edge.

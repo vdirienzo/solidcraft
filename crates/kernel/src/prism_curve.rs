@@ -338,6 +338,20 @@ pub(crate) fn projected_curves(run: &Run, plane: &Plane, tol: f64, work: &mut us
     one_spline(run, plane, tol, work).map(|s| vec![PlanarPiece::Spline(s)])
 }
 
+/// Whether `run`'s curve lies in `plane` itself, not merely in a plane parallel to it: the curve
+/// is read exactly in `plane` (the reader a sketch projects with, [`projected_curves`]) and its own
+/// level in `plane` is the plane's. A curve read exactly but off the plane is not in it.
+pub(crate) fn lies_in_plane(run: &Run, plane: &Plane, tol: f64, work: &mut usize) -> bool {
+    if projected_curves(run, plane, tol, work).is_none() {
+        return false;
+    }
+    // The level the curve is read at: the plane's own, when the curve is in the plane.
+    let Ok(eval) = CurveEval::new(run.curve) else { return false };
+    let (ts, _) = run.ends_along();
+    let Some(start) = eval.point(ts) else { return false };
+    plane.height(start).abs() <= tol
+}
+
 /// `run`'s spline (or ellipse) over its interval, in the direction it runs, as one clamped
 /// B-spline in `plane`: the piece of the curve between the interval's ends (Boehm insertion,
 /// exact up to rounding), its control points read in the plane. `None` when a control point lies
