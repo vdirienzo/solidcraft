@@ -45,6 +45,7 @@
 //! (neither is developable), a bend on the edge of a roll, and a shell's face that meets the
 //! sheet at a sharp edge but is not a plane (it is left out).
 
+use crate::sheet_surface::dbg_planar;
 use solidcraft_develop::prelude::*;
 use solidcraft_geom::prelude::*;
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
@@ -559,7 +560,7 @@ fn to_sharp(r: &Region2, (a, z): (Vec2, Vec2), by: f64, tol: f64) -> std::result
     let q_out = carried(after, q, after.end()).filter(|_| q_end).unwrap_or(q + out * by);
     let band = Region2 { outer: Loop2::polygon(&[p, q, q_out, p_out]).ccw(), holes: Vec::new() };
     let joined =
-        solidcraft_kernel::planar_regions_boolean(std::slice::from_ref(r), std::slice::from_ref(&band), solidcraft_kernel::BoolOp::Union, tol)
+        dbg_planar("L562", std::slice::from_ref(r), std::slice::from_ref(&band), solidcraft_kernel::BoolOp::Union, tol)
             .map_err(|e| e.to_string())?;
     match <[Region2; 1]>::try_from(joined) {
         Ok([one]) => Ok(one),
@@ -1172,7 +1173,7 @@ fn read_surfaces(
         let (lo, hi) = uses.iter().flat_map(|u| &u.points).fold((big, small), |(lo, hi), p| (lo.min(*p), hi.max(*p)));
         if lo.x <= hi.x { lo.dist(hi) } else { 0.0 }
     };
-    let cut = |a: &[Region2], b: &[Region2], op: solidcraft_kernel::BoolOp| solidcraft_kernel::planar_regions_boolean(a, b, op, tol).ok();
+    let cut = |a: &[Region2], b: &[Region2], op: solidcraft_kernel::BoolOp| dbg_planar("L1175", a, b, op, tol).ok();
     let area = |r: &[Region2]| r.iter().map(Region2::area).sum::<f64>();
     // Face `g`, level with face `f` (see `level_of`), in `f`'s parameters: each of its points
     // where the normal through it meets `f`. A roll's chart is laid a turn either way too, where
@@ -1221,11 +1222,11 @@ fn read_surfaces(
             for (depth, g) in found {
                 let Some(p) = projected(f, g) else { continue };
                 let p = std::slice::from_ref(&p);
-                let first = area(&solidcraft_kernel::planar_regions_boolean(&open, p, solidcraft_kernel::BoolOp::Intersect, tol)?);
+                let first = area(&dbg_planar("L1224", &open, p, solidcraft_kernel::BoolOp::Intersect, tol)?);
                 if first > tol * tol && best.is_none_or(|(a, ..)| first > a) {
                     best = Some((first, depth, g));
                 }
-                open = solidcraft_kernel::planar_regions_boolean(&open, p, solidcraft_kernel::BoolOp::Cut, tol)?;
+                open = dbg_planar("L1228", &open, p, solidcraft_kernel::BoolOp::Cut, tol)?;
                 if open.is_empty() {
                     break;
                 }
@@ -2248,7 +2249,7 @@ fn read_surfaces(
                 return err(format!("not supported yet: a round edge in the face of the bend at {}", at(o3)));
             };
             let piece = Region2 { outer: outer.ccw(), holes: holes.into_iter().map(|h| h.ccw().reversed()).collect() };
-            left = solidcraft_kernel::planar_regions_boolean(&left, std::slice::from_ref(&piece), solidcraft_kernel::BoolOp::Cut, tol)?;
+            left = dbg_planar("L2251", &left, std::slice::from_ref(&piece), solidcraft_kernel::BoolOp::Cut, tol)?;
         }
         for r in left.into_iter().filter(|r| r.area() > tol * tol) {
             let x = |p: Vec2| (p - origin2).dot(dir2);
@@ -2333,7 +2334,7 @@ fn read_surfaces(
             };
             for h in &panel.region.holes {
                 let hole = Region2 { outer: h.ccw(), holes: Vec::new() };
-                let met = solidcraft_kernel::planar_regions_boolean(
+                let met = dbg_planar("L2336", 
                     std::slice::from_ref(&hole),
                     std::slice::from_ref(&band),
                     solidcraft_kernel::BoolOp::Intersect,
@@ -4023,7 +4024,7 @@ impl SurfaceSheet {
             // The panel's material in the flat, short of its bends.
             let own: Vec<Region2> =
                 pieces.iter().filter(|(p, _)| matches!(p, crate::sheet_surface::Piece::Panel(k) if *k == i)).map(|(_, r)| r.clone()).collect();
-            out.extend(solidcraft_kernel::planar_regions_boolean(&own, &mapped, solidcraft_kernel::BoolOp::Intersect, 1e-9)?);
+            out.extend(dbg_planar("L4026", &own, &mapped, solidcraft_kernel::BoolOp::Intersect, 1e-9)?);
         }
         if !found {
             return err("the perforation's outline sketch must lie on a face of the sheet");

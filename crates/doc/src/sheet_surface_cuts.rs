@@ -37,6 +37,7 @@
 //! chart: each piece folds and lies flat where the panel does. A cut that leaves the sheet in
 //! several pieces says nothing of it: every piece is as much the sheet as any other.
 
+use crate::sheet_surface::dbg_planar;
 use solidcraft_develop::prelude::*;
 use solidcraft_geom::prelude::*;
 use std::collections::BTreeSet;
@@ -128,7 +129,7 @@ fn on_panel(b: &Body, q: &Query, frame: &Rigid3, t: f64, own: &[Region2], tol: f
         let mine = if inside_by_loops(std::slice::from_ref(&region), own, tol) {
             vec![region]
         } else {
-            planar_regions_boolean(&[region], own, BoolOp::Intersect, tol)?
+            dbg_planar("L131", &[region], own, BoolOp::Intersect, tol)?
         };
         if mine.is_empty() {
             continue;
@@ -301,7 +302,7 @@ fn union(regions: Vec<Region2>, tol: f64) -> Result<Vec<Region2>> {
     let mut it = kept.into_iter();
     let Some(first) = it.next() else { return Ok(Vec::new()) };
     let rest: Vec<Region2> = it.collect();
-    Ok(planar_regions_boolean(&[first], &rest, BoolOp::Union, tol)?)
+    Ok(dbg_planar("L304", &[first], &rest, BoolOp::Union, tol)?)
 }
 
 /// Whether no two of `regions` come within `tol` of each other by their boxes (see [`loop_box`]):
@@ -462,7 +463,7 @@ fn across_laps(sk: &SurfaceSheet, p: usize, g: Region2, rips: &[(usize, Seg2)], 
     if laps.is_empty() {
         return Ok(g);
     }
-    let joined = planar_regions_boolean(std::slice::from_ref(&g), &laps, BoolOp::Union, tol).map_err(|e| e.to_string())?;
+    let joined = dbg_planar("L465", std::slice::from_ref(&g), &laps, BoolOp::Union, tol).map_err(|e| e.to_string())?;
     match <[Region2; 1]>::try_from(joined) {
         Ok([one]) => Ok(one),
         Err(_) => Err("can't be kept in the sheet yet: run on across a rip's lap, it doesn't join up".into()),
@@ -1173,7 +1174,7 @@ fn left(region: &Region2, through: &[Region2], holders: &[Vec2], tol: f64) -> st
             .collect();
         return Ok(Left::Kept(out, parted));
     }
-    let mut left = planar_regions_boolean(std::slice::from_ref(region), through, BoolOp::Cut, tol).map_err(|e| e.to_string())?;
+    let mut left = dbg_planar("L1176", std::slice::from_ref(region), through, BoolOp::Cut, tol).map_err(|e| e.to_string())?;
     if left.len() <= 1 {
         return Ok(left.pop().map_or(Left::Apart, |one| Left::Kept(one, Vec::new())));
     }
@@ -1392,7 +1393,7 @@ fn onto_panels(
             if theirs.is_empty() {
                 return Ok(true);
             }
-            let outside = planar_regions_boolean(std::slice::from_ref(g), &theirs, BoolOp::Cut, tol).map_err(|e| e.to_string())?;
+            let outside = dbg_planar("L1395", std::slice::from_ref(g), &theirs, BoolOp::Cut, tol).map_err(|e| e.to_string())?;
             // A zero test on a computed area (a sliver the booleans leave along a shared edge),
             // not a geometric tolerance.
             Ok(area(&outside) > tol * 10.0 * perimeter(std::slice::from_ref(g)).max(1.0))
@@ -1404,15 +1405,15 @@ fn onto_panels(
             if inside_by_loops(&r, &footprint, tol) {
                 return Ok(r);
             }
-            planar_regions_boolean(&r, &footprint, BoolOp::Intersect, tol).map_err(|e| e.to_string())
+            dbg_planar("L1407", &r, &footprint, BoolOp::Intersect, tol).map_err(|e| e.to_string())
         };
         let near = within(seen(&after.near, &after.near_floors).map_err(|e| e.to_string())?)?;
         let far = within(seen(&after.far, &after.far_floors).map_err(|e| e.to_string())?)?;
         // Square walls: each face sees material wherever the other does.
-        let apart = |a: &[Region2], b: &[Region2]| planar_regions_boolean(a, b, BoolOp::Cut, tol).map(|r| area(&r)).map_err(|e| e.to_string());
+        let apart = |a: &[Region2], b: &[Region2]| dbg_planar("L1412", a, b, BoolOp::Cut, tol).map(|r| area(&r)).map_err(|e| e.to_string());
         let slack = tol * 10.0 * perimeter(&footprint).max(1.0);
         let off_outline = |a: &[Region2], b: &[Region2]| -> std::result::Result<f64, String> {
-            let gaps = planar_regions_boolean(a, b, BoolOp::Cut, tol).map_err(|e| e.to_string())?;
+            let gaps = dbg_planar("L1415", a, b, BoolOp::Cut, tol).map_err(|e| e.to_string())?;
             let mut off = 0.0;
             for g in &gaps {
                 if ours(g)? && (strict || !touches(g, &footprint, tol * 100.0)) {
@@ -1441,7 +1442,7 @@ fn onto_panels(
         let through = if square {
             let gone = match gone_by_loops(&footprint, &near, tol) {
                 Some(gone) => gone,
-                None => planar_regions_boolean(&footprint, &near, BoolOp::Cut, tol).map_err(|e| e.to_string())?,
+                None => dbg_planar("L1444", &footprint, &near, BoolOp::Cut, tol).map_err(|e| e.to_string())?,
             };
             let mut kept = Vec::with_capacity(gone.len());
             for g in gone {
@@ -1572,7 +1573,7 @@ fn held(
     let (Some(taken), Some(at)) = (taken, dev.placements.get(p).copied().flatten()) else { return Ok(true) };
     let own: Vec<Region2> = pieces.iter().filter(|(piece, _)| *piece == Piece::Panel(p)).map(|(_, r)| r.clone()).collect();
     let taken: Vec<Region2> = taken.iter().map(|r| at.region(r)).collect();
-    let kept = planar_regions_boolean(&own, &taken, BoolOp::Cut, tol).map_err(|e| e.to_string())?;
+    let kept = dbg_planar("L1575", &own, &taken, BoolOp::Cut, tol).map_err(|e| e.to_string())?;
     let Some(d) = (b - a).normalized() else { return Ok(false) };
     // The panel's side of its tangent line: away from the zone's other line. What lies past the
     // line, beyond the zone's end, is no hold of the bend's.
@@ -1585,11 +1586,11 @@ fn held(
         outer: Loop2::polygon(&[a - d * reach, b + d * reach, b + d * reach + outward * reach, a - d * reach + outward * reach]).ccw(),
         holes: Vec::new(),
     };
-    let kept = planar_regions_boolean(&kept, std::slice::from_ref(&side), BoolOp::Intersect, tol).map_err(|e| e.to_string())?;
+    let kept = dbg_planar("L1588", &kept, std::slice::from_ref(&side), BoolOp::Intersect, tol).map_err(|e| e.to_string())?;
     if kept.is_empty() {
         return Ok(false);
     }
-    let joined = planar_regions_boolean(std::slice::from_ref(zr), &kept, BoolOp::Union, tol).map_err(|e| e.to_string())?;
+    let joined = dbg_planar("L1592", std::slice::from_ref(zr), &kept, BoolOp::Union, tol).map_err(|e| e.to_string())?;
     let shared = (perimeter(std::slice::from_ref(zr)) + perimeter(&kept) - perimeter(&joined)) / 2.0;
     // A zero test on a computed length, not a geometric tolerance.
     Ok(shared > tol * 10.0)
@@ -1609,7 +1610,7 @@ fn spans_joint(pieces: &[(Piece, Region2)], g: &Region2, tol: f64) -> std::resul
             continue;
         }
         let shared =
-            planar_regions_boolean(std::slice::from_ref(g), std::slice::from_ref(region), BoolOp::Intersect, tol).map_err(|e| e.to_string())?;
+            dbg_planar("L1612", std::slice::from_ref(g), std::slice::from_ref(region), BoolOp::Intersect, tol).map_err(|e| e.to_string())?;
         if area(&shared) <= slack {
             continue;
         }
@@ -1648,14 +1649,14 @@ fn flat_gone(
     let footprint = seen(&[before.near, before.far].concat(), &[before.near_floors, before.far_floors].concat())?;
     let (near, far) = (seen(&after.near, &after.near_floors)?, seen(&after.far, &after.far_floors)?);
     // Square walls: each face sees material wherever the other does.
-    let apart = |a: &[Region2], b: &[Region2]| planar_regions_boolean(a, b, BoolOp::Cut, tol).map(|r| area(&r)).map_err(|e| e.to_string());
+    let apart = |a: &[Region2], b: &[Region2]| dbg_planar("L1651", a, b, BoolOp::Cut, tol).map(|r| area(&r)).map_err(|e| e.to_string());
     let slack = tol * 10.0 * perimeter(&footprint).max(1.0);
     if !(same_regions(&near, &far, tol) || (apart(&near, &far)? <= slack && apart(&far, &near)? <= slack)) {
         return Ok(None);
     }
     Ok(Some(match gone_by_loops(&footprint, &near, tol) {
         Some(gone) => gone,
-        None => planar_regions_boolean(&footprint, &near, BoolOp::Cut, tol).map_err(|e| e.to_string())?,
+        None => dbg_planar("L1658", &footprint, &near, BoolOp::Cut, tol).map_err(|e| e.to_string())?,
     }))
 }
 

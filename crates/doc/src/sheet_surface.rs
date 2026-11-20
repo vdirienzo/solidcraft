@@ -315,7 +315,7 @@ pub(crate) fn planar_boolean(a: &[Region2], b: &[Region2], op: BoolOp, work: &mu
         |rs: &[Region2]| rs.iter().flat_map(|r| std::iter::once(&r.outer).chain(&r.holes)).fold(0usize, |n, l| n.saturating_add(l.segs.len()));
     let n = edges(a).saturating_add(edges(b));
     work.charge(n.saturating_mul(n).saturating_mul(16))?;
-    Ok(solidcraft_kernel::planar_regions_boolean(a, b, op, CLOSE)?)
+    Ok(dbg_planar("L318", a, b, op, CLOSE)?)
 }
 
 /// The union of `regions` ([`planar_boolean`]), in balanced rounds: many pieces side by side do
@@ -361,4 +361,23 @@ fn on_grid(r: &Region2) -> Region2 {
 /// Names the step of making the flat an error came from.
 fn stage<T>(what: &str, r: Result<T>) -> Result<T> {
     r.map_err(|e| DocError::Invalid(format!("{what}: {e}")))
+}
+
+
+/// TEMPORARY DEBUG: names the planar boolean that failed.
+pub(crate) fn dbg_planar(
+    what: &str,
+    a: &[solidcore_record::Region2],
+    b: &[solidcore_record::Region2],
+    op: solidcraft_kernel::BoolOp,
+    tol: f64,
+) -> std::result::Result<Vec<solidcore_record::Region2>, solidcraft_kernel::KernelError> {
+    let r = solidcraft_kernel::planar_regions_boolean(a, b, op, tol);
+    if let Err(e) = &r {
+        eprintln!("PLANAR-FAIL [{what}] op={op:?} tol={tol:e} err={e}");
+        let dump = serde_json::json!({ "what": what, "op": format!("{op:?}"), "tol": tol, "a": a, "b": b });
+        let path = format!("/home/user/.hermes/cache/scratch/fail-{what}.json");
+        let _ = std::fs::write(path, serde_json::to_string_pretty(&dump).unwrap_or_default());
+    }
+    r
 }

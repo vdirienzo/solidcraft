@@ -10,6 +10,7 @@
 //!
 //! Not built yet: flanges on a curved edge or a roll's edge.
 
+use crate::sheet_surface::dbg_planar;
 use solidcore_record::{Loop2, Region2, Seg2, Vec2, Vec3};
 use solidcraft_develop::Cut;
 use solidcraft_develop::prelude::*;
@@ -1220,7 +1221,7 @@ impl SurfaceSheet {
                     Region2 { outer: Loop2::polygon(&corners).ccw(), holes: Vec::new() }
                 })
                 .collect();
-            one(solidcraft_kernel::planar_regions_boolean(std::slice::from_ref(region), &boxes, BoolOp::Cut, 1e-9)?)?
+            one(dbg_planar("L1223", std::slice::from_ref(region), &boxes, BoolOp::Cut, 1e-9)?)?
         };
         let stays = match stays {
             Ok(stays) => stays,
@@ -1234,7 +1235,7 @@ impl SurfaceSheet {
             let (lo, hi) = (m.start, m.start + m.bend.length);
             let reach = [n * s0 + u * lo, n * s0 + u * hi, n * (s0 + ba) + u * hi, n * (s0 + ba) + u * lo];
             let reach = Region2 { outer: Loop2::polygon(&reach).ccw(), holes: Vec::new() };
-            let lacks = solidcraft_kernel::planar_regions_boolean(&[reach], std::slice::from_ref(region), BoolOp::Cut, 1e-9)?;
+            let lacks = dbg_planar("L1237", &[reach], std::slice::from_ref(region), BoolOp::Cut, 1e-9)?;
             cuts.extend(lacks.into_iter().filter(|g| width(g) > SLIVER));
         }
         // What lay on the moving side goes with it: joints, cut-outs across joints, recesses and
@@ -1333,7 +1334,7 @@ impl SurfaceSheet {
             let reach = [n * s0 + u * lo, n * s0 + u * hi, n * (s0 + ba) + u * hi, n * (s0 + ba) + u * lo];
             let mut zone = vec![Region2 { outer: Loop2::polygon(&reach).ccw(), holes: Vec::new() }];
             for c in &cuts {
-                zone = solidcraft_kernel::planar_regions_boolean(&zone, std::slice::from_ref(c), BoolOp::Cut, 1e-9)?;
+                zone = dbg_planar("L1336", &zone, std::slice::from_ref(c), BoolOp::Cut, 1e-9)?;
             }
             let joint = Joint {
                 a: Anchor { panel: i, origin: n * s0 + u * m.start, dir: u },
@@ -2320,7 +2321,7 @@ fn band(region: &Region2, n: Vec2, from: f64, to: f64) -> Result<Vec<Region2>> {
     let corners = [n * from - d * big, n * from + d * big, n * to + d * big, n * to - d * big];
     let strip = Region2 { outer: Loop2::polygon(&corners).ccw(), holes: Vec::new() };
     let tol = (b.size().len() * 1e-9).max(1e-9);
-    Ok(solidcraft_kernel::planar_regions_boolean(std::slice::from_ref(region), std::slice::from_ref(&strip), BoolOp::Intersect, tol)?)
+    Ok(dbg_planar("L2323", std::slice::from_ref(region), std::slice::from_ref(&strip), BoolOp::Intersect, tol)?)
 }
 
 /// The least and the greatest of `x · w` over a region's outline, read off the points of its
@@ -2589,7 +2590,7 @@ fn half(region: &Region2, n: Vec2, from: f64) -> Result<Vec<Region2>> {
     let box_ = [o - d * big, o + d * big, o + d * big + n * big, o - d * big + n * big];
     let half = Region2 { outer: Loop2::polygon(&box_).ccw(), holes: Vec::new() };
     let tol = (b.size().len() * 1e-9).max(1e-9);
-    Ok(solidcraft_kernel::planar_regions_boolean(std::slice::from_ref(region), std::slice::from_ref(&half), BoolOp::Intersect, tol)?)
+    Ok(dbg_planar("L2592", std::slice::from_ref(region), std::slice::from_ref(&half), BoolOp::Intersect, tol)?)
 }
 
 fn area(r: &[Region2]) -> f64 {
