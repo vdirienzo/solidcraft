@@ -680,4 +680,22 @@ mod tests {
         t.note(pointer(0b10, true));
         assert_eq!(t.menu(), BrowserMenu::Taken, "and the next right-click asks again");
     }
+
+    /// #21302 (the same bug as #21229): Windows sends the browser's context menu event after the
+    /// release, so the click is the page's while the button is held and still at the release.
+    /// Taking it for the browser's there opens no menu of SolidCraft's, and the user is told
+    /// the browser took the click.
+    #[test]
+    fn a_right_click_the_browser_reports_after_the_release_is_the_pages() {
+        let mut t = Tracker::default();
+        // The press: the browser has not said anything about the click yet.
+        t.note(pointer(0b10, true));
+        assert_eq!(t.menu(), BrowserMenu::Offered, "the click is the page's while the button is held");
+        // The release: Windows sends `contextmenu` only now, after the release.
+        t.note(pointer(0, false));
+        assert_eq!(t.menu(), BrowserMenu::Offered, "the click is still the page's at the release");
+        // The browser offers the page its context menu event, as Chrome, Edge and Safari do.
+        t.note_menu();
+        assert_eq!(t.menu(), BrowserMenu::Offered, "the click was the page's all along");
+    }
 }
